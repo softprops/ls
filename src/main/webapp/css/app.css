@@ -1,0 +1,23 @@
+* { margin:0; padding: 0; }
+
+article, aside, figure, footer, header, hgroup, menu, nav, section { display: block; }
+
+body, input, texarea {
+  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-size:18px;
+  line-height:1.5em;
+}
+
+a:link, a:visited {
+  text-decoration:none;
+  color:#2AE2FA;
+}
+
+a:hover {
+  color:#69ECFD;
+}
+
+#container {
+  width:960px;
+  margin:1em auto;
+}

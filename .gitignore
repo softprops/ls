@@ -1,0 +1,5 @@
+project/boot/
+src_managed/
+project/plugins/project/build.properties
+target/
+lib_managed/

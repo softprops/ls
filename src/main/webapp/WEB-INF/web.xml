@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf8"?>
+<!DOCTYPE web-app
+PUBLIC "-//Sun Microsystems, Inc.//DTD Web Application 2.3//EN"
+"http://java.sun.com/dtd/web-app_2_3.dtd">
+<web-app>
+  <filter>
+    <filter-name>App</filter-name>
+    <display-name>ls-implicitly</display-name>
+    <filter-class>implicitly.App</filter-class>
+  </filter>
+  <filter-mapping>
+    <filter-name>App</filter-name>
+    <url-pattern>/*</url-pattern>
+    <dispatcher>REQUEST</dispatcher>
+    <dispatcher>FORWARD</dispatcher>
+  </filter-mapping>
+  <mime-mapping>
+    <extension>html</extension>
+    <mime-type>text/html; charset=utf-8</mime-type>
+  </mime-mapping>
+  <mime-mapping>
+    <extension>css</extension>
+    <mime-type>text/css; charset=utf-8</mime-type>
+  </mime-mapping>
+  <mime-mapping>
+    <extension>js</extension>
+    <mime-type>text/javascript; charset=utf-8</mime-type>
+  </mime-mapping>
+</web-app>
