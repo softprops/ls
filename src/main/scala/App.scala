@@ -1,34 +1,21 @@
 package implicitly
 
-import unfiltered.request._
-import unfiltered.response._
+import unfiltered.request.{GET, Path, Seg}
+import unfiltered.response.ResponseString
 
-class App extends unfiltered.filter.Plan {
-  import QParams._
-
-  import models.Project
-  import stores.ProjectStore
-
-  def intent = {
-    case GET(Path(Seg(user :: repo :: rest))) =>
-      ((Github / (user, repo, rest.headOption map { _ + "/" })).right.flatMap {
-        case Nil => Left("no package info found for %s/%s" format(user, repo))
-        case files =>
-          ((Right(Nil): Either[String,List[Project]]) /: files) {
-            case (either, (name, src)) =>
-              either.right.flatMap { cur =>
-                 val p = Ls.Scala(src) map { _(user, repo) }
-                 Right(p)
-              }
-          }
-      }) fold ({ errs =>
-        BadRequest ~> ResponseString(errs)
-      }, { projects =>
-        ProjectStore.save(projects.head) { (_:Either[String, Project]) fold( { err =>
-          ResponseString(err)
-        }, { saved =>
-            Ok ~> ResponseString("Saved " +  saved.url)
-        }) }
-      })
+object Intentions {
+  def create[A, B]: unfiltered.Cycle.Intent[A, B] = {
+    case GET(Path(Seg(user :: repo :: version :: Nil))) =>
+      val resolved = ((Nil: Seq[Library]) /: Bench("extracting libs for %s/%s v%s" format(user, repo, version))(Github.extract(user, repo, version))) ((a, e) => e.fold(
+        { err => a }, { lib => a:+ lib }
+      ))
+      resolved match {
+        case Nil => ResponseString("Libraries Not Found")
+        case xs => ResponseString(xs.toString)
+      }
   }
 }
+
+object App extends unfiltered.filter.Planify(
+  Intentions.create
+)
