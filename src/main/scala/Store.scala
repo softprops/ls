@@ -50,7 +50,28 @@ object Libraries {
       "ghrepo" -> l.ghrepo
      )
 
-  def all[T](f: MongoCollection => T) = Store.collection("libraries") { f }
+  private def innerList(m: MongoDBObject)(objName: String, lname: String) =
+     wrapDBList(wrapDBObj(m.getAs[BasicDBList](objName).get).getAs[BasicDBList](lname).get)
+
+  // todo: this smells boiler platey, think about pimping this a bit more...
+  implicit val m2l: MongoDBObject => Library = (m) => Library(
+    m.getAs[String]("organization").get, m.getAs[String]("name").get, m.getAs[String]("version").get,
+    m.getAs[String]("description").get, wrapDBList(m.getAs[BasicDBList]("tags").get).iterator.map(_.toString).toSeq, m.getAs[String]("docs").get,
+    wrapDBList(m.getAs[BasicDBList]("resolvers").get).iterator.map(_.toString).toSeq, Dependencies(
+     innerList(m)("dependencies", "projects").iterator.map(p => {
+       val mo = wrapDBObj(p.asInstanceOf[DBObject])
+       ModuleID(mo.getAs[String]("organization").get, mo.getAs[String]("name").get, mo.getAs[String]("version").get)
+     }).toSeq,
+     innerList(m)("dependencies", "libraries").iterator.map(l => {
+      val mo = wrapDBObj(l.asInstanceOf[DBObject])
+      ModuleID(mo.getAs[String]("organization").get, mo.getAs[String]("name").get, mo.getAs[String]("version").get)
+     }).toSeq
+    ), m.getAs[String]("ghuser"), m.getAs[String]("ghrepo")
+  )
+
+  implicit val mc2l: MongoCollection => Iterable[Library] = (m) => for(l <- m) yield m2l(l)
+
+  def all[T](f: Iterable[Library] => T)(implicit m2s: MongoCollection => Iterable[Library]) = Store.collection("libraries") { c => f(m2s(c)) }
 
   def save(libs: Seq[Library]) =
     Store.collection("libraries") { col => libs foreach(col += _) }
