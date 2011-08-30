@@ -1,17 +1,13 @@
-package implicitly
-
+package ls
 
 abstract class Props(resource: String) {
+  import scala.util.control.Exception.allCatch
+
   protected lazy val underlying = {
     val props = new java.util.Properties()
     props.load(getClass().getResourceAsStream(resource))
     props
   }
-}
-
-object Props extends Props("/mongo.properties") {
-  import scala.util.control.Exception.allCatch
-
   def get(name: String) = underlying.getProperty(name) match {
     case null => error("undefined property %s" format name)
     case value => value
@@ -29,3 +25,5 @@ object Props extends Props("/mongo.properties") {
 
   def int(name: String) = apply(name).map(v => allCatch.opt{ v.toInt })
 }
+
+object Props extends Props("/ls.properties")

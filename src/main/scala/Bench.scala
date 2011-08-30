@@ -1,4 +1,4 @@
-package implicitly
+package ls
 
 object Bench {
   def apply[T](name: String)(f: => T) = {
