@@ -1,4 +1,4 @@
-src/main/resources/mongo.properties
+src/main/resources/ls.properties
 project/boot/
 src_managed/
 target/
