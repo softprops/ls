@@ -84,7 +84,7 @@ object Intentions {
       val expect = for {
          pg <- lookup("page") is optional[String, String]
       } yield {
-        Libraries.all()(asSbt)
+        Libraries.all()(asJson)
       }
       expect(p) orFail { f =>
         NotFound
