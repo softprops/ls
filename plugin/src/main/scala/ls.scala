@@ -37,7 +37,7 @@ object Plugin extends sbt.Plugin {
       | "dependencies":{
       |   "libraries": %s
       | }
-      |}""".format(
+      |}""".stripMargin.format(
         org, name, version,
         opts.description,
         opts.homepage.getOrElse(""),
