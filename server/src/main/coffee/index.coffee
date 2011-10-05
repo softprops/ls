@@ -4,7 +4,7 @@
     self = this
     li = (l) ->
       console.log l
-      ['<li> <a href="https://github.com/', l.ghuser, '/',l.ghrepo, '">', l.name, '</a> ', l.description, ' ', l.version, '</li>'].join('')
+      "<li> <a href='https://github.com/#{l.ghuser}/#{l.ghrepo}'>#{l.name}</a> #{l.description} #{l.version}</li>"
     ls.libraries (err, libs) ->
       buf = []
       buf.push(li l) for l in libs

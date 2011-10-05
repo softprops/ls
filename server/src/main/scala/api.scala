@@ -1,15 +1,18 @@
 package ls
 
-import unfiltered.request._
-import unfiltered.response._
+import unfiltered._
+import request._
+import response._
 
 object Intentions {
   import Libraries._
   import QParams._
 
-  def asJson(libs: Iterable[Library]) =
+  def asJson(libs: Iterable[Library]) = {
+    println("libs %s" format libs)
     JsonContent ~>
       ResponseString(com.codahale.jerkson.Json.generate(libs))
+  }
 
   def asSbt(libs: Iterable[Library]) =
     CharContentType("application/x-sbt") ~> ResponseString(libs.map(l =>
@@ -21,7 +24,7 @@ object Intentions {
     case _ => false
   }
 
-  def create: unfiltered.Cycle.Intent[Any, Any] = {
+  def create: Cycle.Intent[Any, Any] = {
     case POST(Path("/api/libraries") & Params(p)) =>
       val expect = for {
          user <- lookup("user") is required("missing")
@@ -51,7 +54,7 @@ object Intentions {
       }
   }
 
-  def find: unfiltered.Cycle.Intent[Any, Any] = {
+  def find: Cycle.Intent[Any, Any] = {
     case GET(Path(Seg("api" :: "l" :: rest))) => rest match {
       case user :: Nil =>
         Libraries(user)(asJson)
@@ -65,7 +68,7 @@ object Intentions {
     }
   }
 
-  def any: unfiltered.Cycle.Intent[Any, Any] = {
+  def any: Cycle.Intent[Any, Any] = {
      case GET(Path(Seg("api" :: "any" :: Nil)) & Params(p)) =>
        val expect = for {
          q <- lookup("q") is required("missing")
@@ -79,8 +82,9 @@ object Intentions {
       }
   }
 
-  def list: unfiltered.Cycle.Intent[Any, Any] = {
+  def list: Cycle.Intent[Any, Any] = {
     case GET(Path("/api/libraries") & Params(p)) =>
+      println("list %s" format p)
       val expect = for {
          pg <- lookup("page") is optional[String, String]
       } yield {
