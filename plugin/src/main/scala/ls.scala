@@ -64,9 +64,11 @@ object Plugin extends sbt.Plugin {
     // option library info
     val tags = SettingKey[Seq[String]]("tags", "List of taxonomy tags for the library")
     val docsUrl = SettingKey[Option[URL]]("doc-url", "Url for library documentation")
-
     // private setting!
     val optionals = SettingKey[Optionals]("optionals", "Optional project info")
+
+    val ghUser = SettingKey[Option[String]]("gh-user", "Github user name")
+    val ghRepo = SettingKey[Option[String]]("gh-repo", "Github repository name")
   }
 
   def lsSettings: Seq[Setting[_]] = inConfig(Ls)(Seq(
@@ -111,8 +113,26 @@ object Plugin extends sbt.Plugin {
             out.log.info("Canceling request")
           } else sys.error("Unexpected answer %s" format a)
         }
+    },
+    ghUser := maybeRepo match {
+      case Some((user, _)) => Some(user)
+      case _ => None
+    },
+    ghRepo := maybeRepo match {
+      case Some((_, repo)) => Some(repo)
+      case _ => None
     }
   ))
+
+  val GHRemote = """^git@github.com:(\S+)/(\S+)[.]git$""".r
+
+  private def maybeRepo: Option[(String, String)] = {
+    (Process("git remote -v") !!).split("\n").collectFirst {
+      case lines => lines.split("""\s+""") match {
+        case Array(_ GHRemote(user, repo), _) => (user, repo)
+      }
+    }
+  }
 
   private def ask[T](q: String)(f: String => T): T = q.synchronized {
     print(q)
