@@ -1,9 +1,9 @@
 package ls
 
 case class ModuleID(organization: String, name: String, version: String)
-case class Dependencies(projects: Seq[ModuleID], libraries: Seq[ModuleID])
+case class Dependencies(libraries: Seq[ModuleID])
 case class Library(organization: String, name: String, version: String,
-                   description: String, tags: Seq[String],
+                   description: String, site: String, tags: Seq[String],
                    docs: String, resolvers: Seq[String],
                    dependencies: Dependencies,
                    ghuser: Option[String] = None, ghrepo: Option[String] = None)
@@ -37,16 +37,10 @@ object Libraries {
       "_keywords" -> (l.description.replaceAll("""\s+"""," ").toLowerCase.split(" ") ++
          l.tags ++ Seq(l.organization, l.name, l.version, l.ghuser, l.ghrepo)).toSeq,
       "tags" -> l.tags,
+      "site" -> l.size,
       "docs" -> l.docs,
       "resolvers" -> l.resolvers,
       "dependencies" -> Obj(
-        "projects" -> l.dependencies.projects.map { p =>
-          Obj(
-            "organization" -> p.organization,
-            "name" -> p.name,
-            "version" -> p.version
-          )
-        },
         "libraries" -> l.dependencies.libraries.map { dl =>
           Obj(
             "organization" -> dl.organization,
@@ -74,12 +68,11 @@ object Libraries {
     m.getAs[String]("description").get,
     wrapDBList(m.getAs[BasicDBList]("tags").get)
       .iterator.map(_.toString).toSeq,
+    m.getAs[String]("site").get,
     m.getAs[String]("docs").get,
     wrapDBList(m.getAs[BasicDBList]("resolvers").get)
       .iterator.map(_.toString).toSeq,
     Dependencies(
-      innerList(m)("dependencies", "projects").iterator.map(p =>
-        moduleId(wrapDBObj(p.asInstanceOf[DBObject]))).toSeq,
       innerList(m)("dependencies", "libraries").iterator.map(l =>
         moduleId(wrapDBObj(l.asInstanceOf[DBObject]))).toSeq
     ),
