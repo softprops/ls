@@ -2,17 +2,20 @@ package ls
 
 import sbt._
 import Keys._
+import Project.Initialize
 
 object Plugin extends sbt.Plugin {
   import LsKeys._
   import java.io.File
   import java.net.URL
+  import dispatch._
 
   case class Optionals(description: String, homepage: Option[URL], tags: Seq[String], docUrl: Option[URL])
 
   case class VersionInfo(
     org: String, name: String, version: String, opts: Optionals,
-    resolvers: Seq[Resolver], libraryDeps: Seq[ModuleID]) {
+    resolvers: Seq[Resolver], libraryDeps: Seq[ModuleID],
+    scalaVersions: Seq[String], sbt: Boolean) {
 
     private def mjson(m: ModuleID) =
       """{
@@ -30,24 +33,28 @@ object Plugin extends sbt.Plugin {
       | "name":"%s",
       | "version":"%s",
       | "description":"%s",
-      | "site":"%s"
+      | "site":"%s",
       | "tags":%s,
       | "docs":"%s",
       | "resolvers": %s,
       | "dependencies":{
       |   "libraries": %s
-      | }
+      | },
+      | "scala_versions": %s,
+      | "sbt": %s
       |}""".stripMargin.format(
         org, name, version,
         opts.description,
         opts.homepage.getOrElse(""),
         opts.tags match {
           case Nil => "[]"
-          case ts => ts.mkString("[\"","\",\"","\"]")
+          case ts => ts.mkString("""["""","""","""",""""]""")
         },
         opts.docUrl.getOrElse(""),
         resolvers.mkString("""["""","""","""",""""]"""),
-        libraryDeps.map(mjson).mkString("[",",","]")
+        libraryDeps.map(mjson).mkString("[",",","]"),
+        scalaVersions.mkString("""["""","""","""",""""]"""),
+        sbt
       )
   }
 
@@ -55,6 +62,7 @@ object Plugin extends sbt.Plugin {
   val Ls = config("ls")
 
   object LsKeys {
+    val colors = SettingKey[Boolean]("colors", "Colorize logging")
     val versionInfo = SettingKey[VersionInfo]("version-info", "Information about a version of a project")
     val versionFile = SettingKey[File]("File storing version descriptor file")
     val writeVersion = TaskKey[Unit]("write-version", "Writes version data to descriptor file")
@@ -69,31 +77,34 @@ object Plugin extends sbt.Plugin {
 
     val ghUser = SettingKey[Option[String]]("gh-user", "Github user name")
     val ghRepo = SettingKey[Option[String]]("gh-repo", "Github repository name")
+
+    val lsHost = SettingKey[String]("ls-host", "Host ls server")
+    val find = InputKey[Unit]("find",
+                              "Search for projects based on <user>, <user> <repo>, or <user> <repo> <version>")
   }
 
-  def lsSettings: Seq[Setting[_]] = inConfig(Ls)(Seq(
-    version in Ls <<= (version in Runtime)(_.replace("-SNAPSHOT","")),
-    sourceDirectory in Ls <<= (sourceDirectory in Compile)( _ / "ls"),
-    versionFile <<= (sourceDirectory in Ls, version in Ls)(_ / "%s.json".format(_)),
-    dependencyFilter := { m => m.organization != "org.scala-lang" },
-    docsUrl := None,
-    tags := Nil,
-    description in Ls <<= (description in Runtime),
-    homepage in Ls <<= (homepage in Runtime),
-    optionals <<= (description in Ls, homepage in Ls, tags, docsUrl)((desc, homepage, tags, docs) =>
-       Optionals(desc, homepage, tags, docs)
-    ),
-    versionInfo <<=
-      (organization,
-       name,
-       version,
-       optionals,
-       resolvers,
-       libraryDependencies,
-       dependencyFilter) { (o, n, v, opts, rsvrs, ldeps, dfilter) =>
-         VersionInfo(o, n, v, opts, rsvrs, ldeps.filter(dfilter))
-       },
-    writeVersion <<= (streams, versionFile, versionInfo) map {
+  private def http[T](hand: Handler[T]): T = {
+    val h = new Http
+    try { h(hand) }
+    finally { h.shutdown() }
+  }
+
+  private def lsyncTask: Initialize[Task[Unit]] =
+    (streams, ghUser, ghRepo, version in Ls, lsHost) map {
+      (out, maybeUser, maybeRepo, vers, host) =>
+        (maybeUser, maybeRepo) match {
+          case (Some(user), Some(repo)) =>
+            http((dispatch.url(host).POST / "api" / "libraries") << Map(
+              "user" -> user,
+              "repo" -> repo,
+              "version" -> vers
+            ) as_str)
+          case _ => sys.error("Could not resolve a github git remote")
+        }
+    }
+
+  private def writeVersionTask: Initialize[Task[Unit]] = 
+     (streams, versionFile, versionInfo) map {
       (out, f, info) =>
         if(!f.exists) {
           out.log.debug("Creating dirs for %s" format f)
@@ -113,24 +124,79 @@ object Plugin extends sbt.Plugin {
             out.log.info("Canceling request")
           } else sys.error("Unexpected answer %s" format a)
         }
-    },
-    ghUser := maybeRepo match {
+    }
+
+  def lsSettings: Seq[Setting[_]] = inConfig(Ls)(Seq(
+    colors := true,
+    version in Ls <<= (version in Runtime)(_.replace("-SNAPSHOT","")),
+    sourceDirectory in Ls <<= (sourceDirectory in Compile)( _ / "ls"),
+    versionFile <<= (sourceDirectory in Ls, version in Ls)(_ / "%s.json".format(_)),
+    dependencyFilter := { m => m.organization != "org.scala-lang" },
+    docsUrl := None,
+    tags := Nil,
+    description in Ls <<= (description in Runtime),
+    homepage in Ls <<= (homepage in Runtime),
+    optionals <<= (description in Ls, homepage in Ls, tags, docsUrl)((desc, homepage, tags, docs) =>
+       Optionals(desc, homepage, tags, docs)
+    ),
+    versionInfo <<=
+      (organization,
+       name,
+       version,
+       optionals,
+       resolvers,
+       libraryDependencies,
+       dependencyFilter,
+       sbtPlugin,
+       crossScalaVersions) { (o, n, v, opts, rsvrs, ldeps, dfilter, csv, pi) =>
+         VersionInfo(o, n, v, opts, rsvrs, ldeps.filter(dfilter), pi, csv)
+       },
+    writeVersion <<= writeVersionTask,
+    ghUser := (maybeRepo match {
       case Some((user, _)) => Some(user)
       case _ => None
-    },
-    ghRepo := maybeRepo match {
+    }),
+    ghRepo := (maybeRepo match {
       case Some((_, repo)) => Some(repo)
       case _ => None
-    }
+    }),
+    lsHost := "http://localhost:5000",
+    lsync <<= lsyncTask,
+    find <<= inputTask { (argsTask: TaskKey[Seq[String]]) =>
+      (argsTask, streams, lsHost) map {
+        case (args, out, host) =>
+          val cli = Client(host)
+          // todo: query dsl
+          args match {
+            case Seq(user) =>
+              out.log.info(
+                http(cli.user(user) as_str)
+              )
+            case Seq(user, repo) =>
+              out.log.info(
+                http(cli.repository(user, repo) as_str)
+              )
+            case Seq(user, repo, version) =>
+              out.log.info(
+                http(cli.version(user, repo, version) as_str)
+              )
+          }
+      }
+    },
+    (aggregate in find) := false
   ))
 
-  val GHRemote = """^git@github.com:(\S+)/(\S+)[.]git$""".r
+  object GhRepo {
+    val GHRemote = """^git@github.com[:](\S+)/(\S+)[.]git$""".r
+     def unapply(line: String) = line.split("""\s+""") match {
+       case Array(_, GHRemote(user, repo), _) => Some(user, repo)
+       case a => println(a.toList);None
+     } 
+   }
 
-  private def maybeRepo: Option[(String, String)] = {
-    (Process("git remote -v") !!).split("\n").collectFirst {
-      case lines => lines.split("""\s+""") match {
-        case Array(_ GHRemote(user, repo), _) => (user, repo)
-      }
+  def maybeRepo: Option[(String, String)] = {
+    (Process("git remote -v") !!).split("""\n""").collectFirst {
+      case GhRepo(user, repo) => (user, repo)
     }
   }
 

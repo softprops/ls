@@ -38,7 +38,11 @@ object Github extends ManagedHttp {
     try {
       http(repos.secure / user / repo / "git" / "blobs" / sha <:< BlogOpts >> { in =>
         try { Right(parse[Library](in)) }
-        catch { case _ => println("%s was unparsable" format sha);Left(Unparsable) }
+        catch { case e =>
+          e.printStackTrace
+          println("%s/%s/git/blobs/%s was unparsable" format(user, repo, sha))
+          Left(Unparsable)
+        }
       })
     } catch {
       case _ => println("%s not found" format sha);Left(NotFound)

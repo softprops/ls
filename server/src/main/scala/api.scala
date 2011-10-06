@@ -8,11 +8,9 @@ object Intentions {
   import Libraries._
   import QParams._
 
-  def asJson(libs: Iterable[Library]) = {
-    println("libs %s" format libs)
+  def asJson(libs: Iterable[Library]) =
     JsonContent ~>
       ResponseString(com.codahale.jerkson.Json.generate(libs))
-  }
 
   def asSbt(libs: Iterable[Library]) =
     CharContentType("application/x-sbt") ~> ResponseString(libs.map(l =>
@@ -31,6 +29,7 @@ object Intentions {
          repo <- lookup("repo") is required("missing")
          version <- lookup("version") is required("missing")
       } yield {
+        println("create for %s/%s/%s" format(user.get, repo.get, version.get))
         Github.extract(user get, repo get, version get) match {
           case (e@Seq(_), Seq(libraries)) =>
             println("some err some success")

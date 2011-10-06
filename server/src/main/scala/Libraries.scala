@@ -6,12 +6,9 @@ case class Library(organization: String, name: String, version: String,
                    description: String, site: String, tags: Seq[String],
                    docs: String, resolvers: Seq[String],
                    dependencies: Dependencies,
+                   scala_versions: Seq[String],
+                   sbt: Boolean = false,
                    ghuser: Option[String] = None, ghrepo: Option[String] = None)
-
-
-object Convertions {
-
-}
 
 object Libraries {
   import com.mongodb.casbah.commons.{MongoDBObject => Obj}
@@ -37,7 +34,7 @@ object Libraries {
       "_keywords" -> (l.description.replaceAll("""\s+"""," ").toLowerCase.split(" ") ++
          l.tags ++ Seq(l.organization, l.name, l.version, l.ghuser, l.ghrepo)).toSeq,
       "tags" -> l.tags,
-      "site" -> l.size,
+      "site" -> l.site,
       "docs" -> l.docs,
       "resolvers" -> l.resolvers,
       "dependencies" -> Obj(
@@ -49,6 +46,8 @@ object Libraries {
           )
          }
       ),
+      "scala_versions" -> l.scala_versions,
+      "sbt" -> l.sbt,
       "ghuser" -> l.ghuser,
       "ghrepo" -> l.ghrepo
     )
@@ -66,9 +65,9 @@ object Libraries {
     m.getAs[String]("name").get,
     m.getAs[String]("version").get,
     m.getAs[String]("description").get,
+    m.getAs[String]("site").get,
     wrapDBList(m.getAs[BasicDBList]("tags").get)
       .iterator.map(_.toString).toSeq,
-    m.getAs[String]("site").get,
     m.getAs[String]("docs").get,
     wrapDBList(m.getAs[BasicDBList]("resolvers").get)
       .iterator.map(_.toString).toSeq,
@@ -76,6 +75,9 @@ object Libraries {
       innerList(m)("dependencies", "libraries").iterator.map(l =>
         moduleId(wrapDBObj(l.asInstanceOf[DBObject]))).toSeq
     ),
+    wrapDBList(m.getAs[BasicDBList]("scala_versions").get)
+      .iterator.map(_.toString).toSeq,
+    m.getAs[Boolean]("sbt").getOrElse(false),
     m.getAs[String]("ghuser"),
     m.getAs[String]("ghrepo")
   )
@@ -116,21 +118,39 @@ object Libraries {
 
   // merge/update before simply appending to collection
   def save(libs: Seq[Library]) = libraries { col =>
-        libs.map(l =>
-          try { col.findAndModify(
-           /*query*/Obj(
-             "name" -> l.name, "organization" -> l.organization,"version" -> l.version,
-             "ghuser" -> l.ghuser, "ghrepo" -> l.ghrepo
-           ),
-           /*fields*/Obj(),
-           /*sort*/Obj(),
-           /*rm*/false,
-           /*update*/l2m(l),
-           /*returnnew*/ true,
-           /*upsert*/true
-        ) } catch {
-           case e => e.printStackTrace
-        }
-     )
+    // todo: find and track lastest
+    libs.map { l =>
+
+      // update or create
+      // the document reppresenting
+      // name + org + version + user + repo
+      // deal the `canonical repo` later
+      try { col.findAndModify(
+        /*query*/Obj(
+          "name" -> l.name,
+          "organization" -> l.organization,
+          "version" -> l.version,
+          "ghuser" -> l.ghuser, "ghrepo" -> l.ghrepo
+        ),
+        /*fields*/Obj(),
+        /*sort*/Obj(),
+        /*rm*/false,
+        /*update*/l2m(l),
+        /*returnnew*/ true,
+        /*upsert*/true
+      ) } catch {
+        case e => e.printStackTrace
+      }
+
+      /*val versions = for(version <- col.find(
+        Obj(
+          "ghuser" -> l.ghuser, "ghrepo" -> l.ghrepo,
+          "name" -> l.name, "organization" -> l.organization
+        ),
+        Obj("version"-> 1), 0, 10)
+      ) yield (version._id.get, version.getAs[String]("version").get)
+        println(versions)
+      val latest = versions.toList max Ordering.by((_: (_, String))._2)*/
+    }
   }
 }
