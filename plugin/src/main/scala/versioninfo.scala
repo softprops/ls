@@ -31,14 +31,21 @@ case class VersionInfo(
     )
 
   def represent = (_: Resolver) match {
-    case repo: MavenRepository => repo
-    case repo: JavaNet1Repository => repo
-    case repo: SshRepository   => repo
-    case repo: SftpRepository  => repo
-    case repo: FileRepository  => repo
-    case repo: URLRepository   => repo
-    case repo: ChainedResolver => repo
-    case repo: RawRepository   => repo
+    // Maven repos are composed of a name and root url,
+    // we only care about capturing the url
+    case repo: MavenRepository => repo.root
+    case notsupported => sys.error(
+      "ls currently only supports sbt MavenRespositories which %s is not. This may change in the future".format(
+        notsupported
+      )
+    )
+    //case repo: JavaNet1Repository => repo
+    //case repo: SshRepository   => repo
+    //case repo: SftpRepository  => repo
+    //case repo: FileRepository  => repo
+    //case repo: URLRepository   => repo
+    //case repo: ChainedResolver => repo
+    //case repo: RawRepository   => repo
   }
 
   lazy val json =
