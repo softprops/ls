@@ -20,7 +20,7 @@ $ ->
      </li>"
 
   display = (libs) ->
-    # produce n lists of of n elements
+    # produce n lists of n elements
     # god I <3 coffeescript
     if libs.length
       [c, r] = [2, 3]
