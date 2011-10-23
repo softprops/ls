@@ -52,12 +52,15 @@ object Plugin extends sbt.Plugin {
       (out, maybeUser, maybeRepo, vers, host) =>
         (maybeUser, maybeRepo) match {
           case (Some(user), Some(repo)) =>
-            http((dispatch.url(host).POST / "api" / "libraries") << Map(
-              "user" -> user,
-              "repo" -> repo,
-              "version" -> vers
-            ) as_str)
-          case _ => sys.error("Could not resolve a github git remote")
+            out.log.info("lsyncing project %s/%s@%s..." format(user, repo, vers))
+            try {
+              http(Client(host).lsync(user, repo, vers) as_str)
+              out.log.info("project was synchronized")
+            } catch {
+              case e =>
+                out.log.warn("Error synchronizing project libraries %s" format e.getMessage)
+            }
+          case _ => sys.error("Could not resolve a Github git remote")
         }
     }
 

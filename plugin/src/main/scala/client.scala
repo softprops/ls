@@ -19,6 +19,14 @@ case class Client(host: String) {
     case (Some(u), Some(r)) => api / "libraries" / name / version.getOrElse("latest") / u / r
     case _ => api / "libraries" / name / version.getOrElse("latest")
   }
+  /** Syncronize ls server with gihub library version info */
+  def lsync(user: String, repo: String, vers: String) =
+    (api.POST / "libraries") << Map(
+      "user" -> user,
+      "repo" -> repo,
+      "version" -> vers
+    )
+
   def search(kwords: Seq[String]) = 
     api / "search" <<? Map("q" -> kwords.mkString(" ").trim)
 }
