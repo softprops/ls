@@ -40,7 +40,7 @@ $ ->
     ls.libraries display
 
   # search box
-  # we do know what to issue a query after every since key up event
+  # we don't want to issue a query after every since key up event
   # instead, only issue a query when the user appears to be done typing
   # if this gets any more complex, consider using a plugin
   typeTimeout = null
