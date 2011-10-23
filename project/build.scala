@@ -6,13 +6,24 @@ object Build extends sbt.Build {
   import CoffeeScript._
   import less.Plugin._
 
+  object Resolvers {
+    val coda = "coda" at "http://repo.codahale.com"
+  }
+
+  val buildSettings = Defaults.defaultSettings ++ Seq(
+    organization := "me.lessis",
+    version := "0.1.0-SNAPSHOT"
+  )
+
+  lazy val lib = Project("library", file("library"),
+                       settings = buildSettings ++ Seq(name := "ls"))
+
   lazy val svr = Project("server", file("server"),
-                         settings = Defaults.defaultSettings ++ Seq(
-                           organization := "me.lessis",
-                           name := "ls",
-                           version := "0.1.0-SNAPSHOT",
+                         settings = buildSettings ++ Seq(
+                           name := "ls-server",
+                           scalacOptions += "-deprecation",
                            libraryDependencies ++= Seq(
-                             "com.codahale" %% "jerkson" % "0.4.2",
+                             "com.codahale" %% "jerkson" % "0.5.0",
                              "net.databinder" %% "dispatch-http" % "0.8.5",
                              "net.databinder" %% "unfiltered-netty-server" % "0.5.0",
                              "com.mongodb.casbah" %% "casbah" % "2.1.5-1"
@@ -20,17 +31,18 @@ object Build extends sbt.Build {
                            (targetDirectory in Coffee) <<= (resourceManaged in Compile) { _ / "www" / "js" },
                            (resourceManaged in (Compile, LessKeys.less)) <<= (resourceManaged in Compile) { _ / "www" / "css" },
                            (LessKeys.mini in (Compile, LessKeys.less)) := true,
-                           resolvers += "coda" at "http://repo.codahale.com"
-                         ))
+                           resolvers += Resolvers.coda
+                         )) dependsOn(lib)
 
   lazy val plugin = Project("plugin", file("plugin"),
-                          settings = Defaults.defaultSettings ++ Seq(
+                          settings = buildSettings ++ Seq(
                             sbtPlugin := true,
-                            organization := "me.lessis",
                             name := "ls-sbt",
-                            version := "0.1.0-SNAPSHOT",
-                            libraryDependencies +=
+                            libraryDependencies ++= Seq(
+                              "com.codahale" %% "jerkson" % "0.5.0",
                               "net.databinder" %% "dispatch-http" % "0.8.5"
-                          ))
+                            ),
+                            resolvers += Resolvers.coda
+                          )) dependsOn(lib)
 
 }

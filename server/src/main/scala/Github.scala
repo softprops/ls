@@ -14,12 +14,16 @@ case class Blob(content: String, encoding: String)
 case class Entry(path: String, mode: String, `type`: String, size: Option[Int], sha: String, url: String)
 case class Tree(sha: String, url: String, tree: Seq[Entry])
 
-object Github extends ManagedHttp {
+case class Organization(login: String, id: Int, avatar_url: String, url: String, `type`: String)
+// cases classes can't have > 22 params
+// case class Repository(...)
+
+object Github extends ManagedHttp with Logged {
   import dispatch._
   import com.codahale.jerkson.Json._
   import util.control.Exception.allCatch
 
-  case class Error(msg: String)
+  abstract class Error(val msg: String)
   case object NotFound extends Error("Not Found")
   case object Unparsable extends Error("Unparsable")
 
@@ -33,19 +37,58 @@ object Github extends ManagedHttp {
         case (l, r) => (e.left.toSeq ++ l, e.right.toSeq ++ r)
      })
 
-  /** Extract a library from a gh blob, result may be unparsable or not found */
-  private def lib(user: String, repo: String, sha: String): Either[Error, Library] =
+  def contributors(user: String, repo: String): Either[Error, Seq[User]] =
     try {
-      http(repos.secure / user / repo / "git" / "blobs" / sha <:< BlogOpts >> { in =>
-        try { Right(parse[Library](in)) }
+      http(repos.secure / user / repo / "contributors" >> { in =>
+        try { Right(parse[Seq[User]](in)) }
         catch { case e =>
           e.printStackTrace
-          println("%s/%s/git/blobs/%s was unparsable" format(user, repo, sha))
+          log.warn("%s/%s was unparsable" format(user, repo))
           Left(Unparsable)
         }
       })
     } catch {
-      case _ => println("%s not found" format sha);Left(NotFound)
+      case e => log.warn("error retrieving repo info for %s/%s %s" format(
+        user, repo, e.getMessage
+      ))
+      Left(NotFound)
+    }
+
+  def repository(user: String, repo: String): Either[Error, Map[String, Any]] = 
+    try {
+      http(repos.secure / user / repo >> { in =>
+        try { Right(parse[Map[String, Any]](in)) }
+        catch { case e =>
+          e.printStackTrace
+          log.warn("%s/%s was unparsable" format(user, repo))
+          Left(Unparsable)
+        }
+      })
+    } catch {
+      case e => log.warn("error retrieving repo info for %s/%s %s" format(
+        user, repo, e.getMessage
+      ))
+      Left(NotFound)
+    }
+
+  /** Extract a library from a gh blob, result may be unparsable or not found */
+  private def lib(user: String, repo: String, sha: String): Either[Error, Library] =
+    try {
+      http(repos.secure / user / repo / "git" / "blobs" / sha <:< BlogOpts >> { in =>
+        try {
+           Right(parse[Library](in).copy(contributors = Some(contributors(user, repo).fold({
+             errs => log.warn(errs.toString); Nil
+           }, {
+             cs => cs
+           }))))
+        } catch { case e =>
+          e.printStackTrace
+          log.warn("%s/%s/git/blobs/%s was unparsable" format(user, repo, sha))
+          Left(Unparsable)
+        }
+      })
+    } catch {
+      case _ => log.warn("%s not found" format sha);Left(NotFound)
     }
 
   /** Extract all libraries from a repo */

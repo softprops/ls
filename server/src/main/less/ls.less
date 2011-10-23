@@ -1,29 +1,18 @@
 html, body, div, span, applet, object, iframe,html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td,article,aside,canvas,details,embed,figure,figcaption,footer,header,hgroup,menu,nav,output,ruby,section,summary,time,mark,audio,video{margin:0;padding:0;border:0;font-size:100%;font:inherit;vertical-align:baseline}article,aside,details,figcaption,figure,footer,header,hgroup,menu,nav,section{display:block}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}table{border-collapse:collapse;border-spacing:0}
 
+.clearfix:after{content:".";display:block;clear:both;visibility:hidden;line-height:0;height:0}.clearfix{display:inline-block}html[xmlns] .clearfix{display:block}* html .clearfix{height:1%}
+
 @link-color: #80EAFF;
 @highlight-color: #FF2469;
 @fancy-font: 'Ubuntu Condensed', sans-serif;
 @fancy-code-font: 'Ubuntu Mono', sans-serif;
-@default-font: Helvetica Neue, Helvetica;
-@default-color: #A0A0B1;
+@default-font: 'Sorts Mill Goudy', serif;/*Helvetica Neue, Helvetica;*/
+@default-color: #968D8C;/*#A0A0B1;*/
+@light-color: #E7E7E7;
+@container-width:940px;
 
-body {
-  font-family: @default-font;
-  font-size:26px;
-  background:#F5F2EC;
-  color: @default-color;
-  line-height:1.5em;
-}
-
-#container {
-  width:940px;
-  margin:1em auto;
-}
-
-h1 {
-   font-size:50px;
-   font-weight:bold;
-   font-family: @fancy-font;
+.centered {
+  text-align:center;
 }
 
 .rounded (@radius: 4px) {
@@ -32,45 +21,274 @@ h1 {
   border-radius:4px;
 }
 
-.shadowed (@x:0px, @y: 0px, @blur: 3px, @color: #D6F5FF) {
-  @val: @x @y @blur @color;
+.shadowed (@color: #D6F5FF, @x:0px, @inset:inset, @y: 0px, @blur: 3px) {
+  @val: @inset @x @y @blur @color;
   box-shadow:         @val;
   -webkit-box-shadow: @val;
   -moz-box-shadow:    @val;
 }
 
+.textfield-like {
+  -webkit-appearance: textfield;
+  -webkit-box-sizing: content-box;
+  -moz-box-sizing: content-box;
+  box-sizing: content-box;
+}
+
+input[type='search'] {
+  .rounded;
+  .shadowed;
+  .textfield-like;
+  border:1px solid ccc;  
+  text-align:center;
+  font-weight:bold;
+  font-size:26px;
+  padding:.25em;
+  width:80%;
+  margin: 0 auto;
+}
+
+input[type="search"]::-webkit-search-cancel-button {
+  -webkit-appearance: none;
+}
+
+body {
+  font-family: @default-font;
+  font-size:18px;
+  background:#FCFCFC;
+  color: @default-color;
+  line-height:1.5em;
+  text-align:center;
+}
+
+p {
+  margin:.25em 0;
+}
+
+#read {
+  ol {
+    list-style:numeric;
+  }
+  h2 {
+
+  }
+  p {
+    margin:1em 0;
+  }
+}
+
+#index {
+  form {
+   .centered;
+  }
+  h1, h2 {
+    .centered;
+  }
+  #libraries {
+    .none-found {
+      text-align:center;
+    }
+    ul {
+      float:left;
+      margin:.5em;
+      width: @container-width / 3.2;
+      li {
+        margin-bottom:1em;
+      }
+    }
+    a span {
+      color:@light-color;
+    }
+  }
+}
+
+#libraries {
+  padding-top:1.25em;
+  .latest {
+    color: @light-color;
+  }
+}
+
+#container {
+  .clearfix;
+  text-align:left;
+  width:@container-width;
+  margin:1em auto;
+}
+
+#right {
+  float:left;
+  width:620px;
+}
+
+#left {
+  float:left;
+  width:300px;
+  border-right:1px solid #eee;
+  margin-right:1em;
+}
+
+#foot {
+  width:940px;
+  margin:0 auto;
+  clear:both;
+  padding:1em 0;
+  p, ul, ol, li {
+    text-align:left;
+  }
+}
+
+.lib {
+  margin:0 0 1em 0;
+  .description {
+    border-left: 4px solid #eee;
+    padding-left: .5em;
+  }
+  .tags {
+    .tag {
+      .rounded;
+      padding:0 .25em;
+      display:inline-block;
+      line-height:1.5em;
+      margin:.5em .25em;
+    }
+  }
+  .head {
+    .by-line {
+
+    }
+    border-bottom:1px solid #ccc;
+  }
+  h3 {
+    font-size: 130%;
+    line-height:1.5em;
+    border-bottom:1px solid #ccc;
+    margin-bottom:.25em;
+  }
+  .install pre {
+   
+  }
+
+  .scala-versions li {
+    font-size:18px;
+    font-weight:bold;
+    float:left;
+    margin-right:.5em;
+  }
+
+  .versions {
+    .clearfix;
+    .version-nums {
+      float:left;
+      width:80px;
+      li {
+         padding-left:.25em;
+      }
+    }
+    .version-details {
+      .sel {
+        .rounded;
+      }
+      float:right;
+      width:540px;
+      .version {
+        display:none;
+        padding:.5em;
+        .section {
+          clear:both;
+          margin-bottom:1em;
+        }
+        .library-dependencies {
+          span {
+            font-size:18px;
+          }
+        }
+      }
+      .version.sel {
+        display:block;
+      }
+    }
+  }
+}
+
+.sel {
+  background:#eee;
+}
+
+.author {
+  .contributes {
+    margin:.5em 0 0 0;
+  }
+}
+
+.home-link {
+  font-size:18px;
+}
+
+.author .num {
+  font-size: larger;
+  font-weight:bold;
+}
+
+pre {
+  .rounded;
+  .shadowed(#333);
+  font-size:18px;
+  background:#7A7A7A;
+  color:#fff;
+  code {
+    text-shadow:0 1px #333;
+  }
+  padding:.25em;
+}
+
+code {
+  font-family: @fancy-code-font;
+  text-shadow:0 1px #fff;
+  word-wrap:break-word;
+  .comment {
+    color:@light-color;
+  }
+}
+
+h1 {
+  font-size:80px;
+  font-weight:bold;
+  font-family: @fancy-font;
+  margin: 0 0 .25em 0;
+  line-height:1em;
+  color:#333;
+  .ls {
+    color:@highlight-color;
+  }
+  .dot {
+    color:@light-color;
+  }
+}
+
+h2 {
+  font-size:28px;
+}
 
 input[type="text"] {
   .rounded;
-  .shadowed;
-  
-  font-size:24px;
+  .shadowed;  
+  font-size:34px;
   pading:.25em;
   border:1px solid #ccc;
-  
-  -moz-box-shadow:0px 0px 3px #D6F5FF;
-  -webkit-box-shadow:0px 0px 3px #D6F5FF;
-  box-shadow:0px 0px 3px #D6F5FF;
-}
-
-input[type="text"]:hover {
-
 }
 
 form {
   display:block;
-  margin:1em;
+  margin:1em 0;
 }
 
 .at {
-  color:#E7E7E7;
-}
-
-.version {
-  font-weight:bold;
+  color:@light-color;
 }
 
 a:link, a:visited {
+  text-shadow:0 1px #fff;
   text-decoration:none;
   color: @link-color;
 }
@@ -86,4 +304,5 @@ a span {
 
 input[type='text'] {
   font-family: @fancy-font;
+  padding:.25em;
 }
