@@ -47,7 +47,6 @@ $ ->
 
   search = () ->
     q = $.trim($("#q").val())
-    console.log "search for #{q}"
     if q.length > 2
       ls.search q, display
     else if q.length is 0
