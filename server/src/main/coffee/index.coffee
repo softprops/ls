@@ -40,9 +40,21 @@ $ ->
     ls.libraries display
 
   # search box
-  $("#q").keyup (e) ->
-    q = $.trim($(this).val())
-    if q.length > 3
+  # we do know what to issue a query after every since key up event
+  # instead, only issue a query when the user appears to be done typing
+  # if this gets any more complex, consider using a plugin
+  typeTimeout = null
+
+  search = () ->
+    q = $.trim($("#q").val())
+    console.log "search for #{q}"
+    if q.length > 2
       ls.search q, display
     else if q.length is 0
       ls.libraries display
+
+  $("#q").keyup (e) ->
+    typeTimeout = setTimeout(search, 700)
+
+  $("#q").keydown (e) ->
+    clearTimeout(typeTimeout)
