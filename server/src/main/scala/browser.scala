@@ -21,7 +21,7 @@ object Templates {
   def site(url: String) =
     url match {
       case "" => ""
-      case ok => <a href={ ok } target="_blank">Site</a>
+      case ok => <a href={ ok } target="_blank">Project page</a>
     }
 
   def libraryVersions(l: LibraryVersions) =
@@ -138,7 +138,7 @@ object Templates {
         <div id="foot">
           Published under Scala.
           <div>
-            <a href="/readme#publishing">Publish your library</a> | <a href="/readme#contacting">Contact your local librarian</a>
+            <a href="/readme#publishing">Publish your library</a> | <a href="/readme#contacting">Contact your librarian</a>
           </div>
         </div>
        <script type="text/javascript" src="/js/ls.js"></script>
