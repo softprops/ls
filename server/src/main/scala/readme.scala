@@ -31,7 +31,7 @@ object Readme {
    "name": "MIT", 
    "url":"https://yourdomain.org/awesome-library/LICENSE"
   }}],
- "resolvers": %s,
+ "resolvers": ["http://repo.yourdomain.org/"],
  "library_dependencies": [{{
    "organization":"org.otherdomain",
    "name": "my-awesome-dependency",
@@ -48,7 +48,7 @@ object Readme {
      ls will then recursively extract any files in the <code>github.com/your-gh-user/your-gh-repo</code> repository for files matching <code>src/main/ls/version-to-sync.json</code> and capture the above information.
       </p>
       <h2 id="plugin">Sbt plugin</h2>
-      <p>This is a lot of information to author by hand. To make things simple, just use the sbt plugin. <a href="#" target="_blank">ls-sbt</a>. The purpose of the plugin is thre-fold</p>
+      <p>This is a lot of information to author by hand. To make things simple, just use the sbt plugin, <a href="#" target="_blank">ls-sbt</a>. The purpose of the plugin is three-fold</p>
       <p>
         <ul>
           <li>1) To make it easy to lsync your scala library's version info</li>
@@ -62,10 +62,10 @@ object Readme {
       </p>
       <h2>Lsync'ing from sbt</h2>
       <p>
-        From any project just type <code>ls:write-version</code> and the plugin will generate a new version.json file for your libraries current version.
-        When you are ready to publish your libraries version information, commit and push your version info file to github then from sbt type,
+        From any project just type <code>ls:write-version</code> and the plugin will generate a new version.json file for your library's current version.
+        When you are ready to publish your library's version information, commit and push your version info file to Github then, from sbt, type
         <pre><code>sbt> ls:lsync</code></pre>
-       If all goes well you will then be able to find your library on ls.implicit.ly.
+       If all goes well, you will then be able to find your library on ls.implicit.ly.
       </p>
       <h2>Finding libraries from sbt</h2>
       <p>
@@ -88,7 +88,7 @@ object Readme {
         By default <code>try</code> and <code>install</code> will always use the latest version published.
       </p>
       <p>
-        It is not recommended to lsync version information across libraries but in the case that library author has, ls will prompt you for the repo you wish to use.
+        It is not recommended to lsync version information across repos but in the case that library author has, ls will prompt you for the repo you wish to use.
       </p>
     </div>
     <div id="contacting">
