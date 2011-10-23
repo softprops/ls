@@ -30,7 +30,9 @@ object Templates {
         <a href={ "/%s/%s/#%s" format(l.ghuser.get, l.ghrepo.get, l.name) }>{ l.name }</a>
       </h2>
       <p class="description">{ l.description }</p>
-      <p class="tags">filed under { l.tags.map(tag) }</p>
+      {
+        if(!l.tags.isEmpty) <p class="tags">filed under { l.tags.map(tag) }</p>
+      }
       <p class="external"><span>{ site(l.site) }</span></p>
       <div class="versions">
         <ul class="version-nums">{
