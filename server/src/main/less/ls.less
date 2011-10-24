@@ -17,6 +17,13 @@ html, body, div, span, applet, object, iframe,html,body,div,span,applet,object,i
   text-align:center;
 }
 
+.pagination {
+  clear:both;
+  .page {
+    margin-right:1em;
+  }
+}
+
 .rounded (@radius: 4px) {
   -moz-border-radius:4px;
   -webkit-border-radius:4px;
@@ -106,7 +113,7 @@ p {
         margin-bottom:1em;
       }
     }
-    a span {
+    a:link span, a:visited span {
       color:@light-color;
     }
   }

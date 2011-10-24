@@ -114,11 +114,13 @@ object Api extends Logged {
   // Paginated sets of all libraries
   def all: Cycle.Intent[Any, Any] = {
     case GET(Path(Seg("api" :: "libraries" :: Nil)) & Params(p)) =>
-      log.info("list %s" format p)
       val expect = for {
          pg <- lookup("page") is optional[String, String]
+         lim <- lookup("limit") is optional[String, String]
       } yield {
-        Libraries.all()(asJson)
+        Libraries.all(
+          pg.get.getOrElse("1").toInt,
+          lim.get.getOrElse("20").toInt)(asJson)
       }
       expect(p) orFail { f =>
         NotFound
