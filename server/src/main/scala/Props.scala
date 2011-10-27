@@ -9,12 +9,12 @@ abstract class Props(resource: String) {
     props
   }
   def get(name: String) = underlying.getProperty(name) match {
-    case null => error("undefined property %s" format name)
+    case null => sys.error("undefined property %s" format name)
     case value => value
   }
 
   def getInt(name: String) = allCatch.opt { get(name) toInt } match {
-    case None => error("undefined int property %s" format name)
+    case None => sys.error("undefined int property %s" format name)
     case Some(n) => n
   }
 

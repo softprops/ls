@@ -4,7 +4,7 @@ object Readme {
   val body = 
     <div id="read">
       <div id="publishing">
-      <h1>ls.implicit.ly : publishing</h1>
+      <h1><a href="/"><span class="ls">ls</span><span class="dot">.</span>implicit.ly</a> : <a href="/readme#publishing">publishing</a></h1>
       <h2>ls makes two assumptions about your Scala libraries</h2>
       <p>
         <ul>
@@ -18,27 +18,30 @@ object Readme {
       </p>
       <h2 id="lsync-spec">Lsync specification</h2>
       <p>
-        ls stores semi structured information about your library versions by capturing a json encoded file for each version of your library and storing it for later retrieval by others. The following is a description of the format that ls uses to capture this information.
+        ls stores semi structured information about your library versions by capturing a json encoded file for each version of your library and tucks it for later retrieval by others. The following is a description of the format that ls uses to capture this information.
       <pre><code>{{
- "organization":"org.yourdomain",
- "name":"my-awesome-library",
- "version":"1.0",
- "description":"Hot stuff comin' through",
- "site":"http://yourdomain.org/awesome-library-overview",
- "tags": ["awesome"],
- "docs":"https://yourdomain.org/awesome-library-docs",
- "licenses": [{{
+ "organization":"org.yourdomain", <span class="comment">// your mvn/ivy organization identifier</span>
+ "name":"my-awesome-library", <span class="comment">// the name of your awesome project</span>
+ "version":"1.0", <span class="comment">// the version of you awesome project</span>
+ "description":"Hot stuff comin' through", <span class="comment">// a short description that describes your project</span>
+ "site":"http://yourdomain.org/awesome-library-overview", <span class="comment">// where we can find more info on your project</span>
+ "tags": ["awesome"], <span class="comment">// tags help categorize your library for others to find</span>
+ "docs":"https://yourdomain.org/awesome-library-docs", <span class="comment">// where we can find documentation on your projects api</span>
+ "licenses": [{{ <span class="comment">// how do you want to distribute your library</span>
    "name": "MIT", 
    "url":"https://yourdomain.org/awesome-library/LICENSE"
   }}],
- "resolvers": ["http://repo.yourdomain.org/"],
- "library_dependencies": [{{
+ "resolvers": ["http://repo.yourdomain.org/"], <span class="comment">// how can we resolve your library</span>
+ "library_dependencies": [{{ <span class="comment">// what does your library depend on</span>
    "organization":"org.otherdomain",
    "name": "my-awesome-dependency",
    "version": "0.1.0"
   }}],
- "scala_versions": ["2.8.0","2.8.1","2.8.2","2.9.0","2.9.0-1","2.9.1"],
- "sbt": false
+ "scala_versions": [
+   "2.8.0","2.8.1","2.8.2",
+   "2.9.0","2.9.0-1","2.9.1"
+  ], <span class="comment">// what versions of scala is your library compiled for</span>
+ "sbt": false <span class="comment">// is your library and sbt plugin?</span>
 }}</code></pre>
       <p>To perform an lsync for a given repository simply perform an http <code>POST</code> to ls's <code>libraries</code> path</p>
       <pre><code>curl -X POST http://ls.implicit.ly/api/libraries 
@@ -92,7 +95,7 @@ object Readme {
       </p>
     </div>
     <div id="contacting">
-     <h1>ls.implicit.ly : contacting</h1>
+     <h1><a href="/"><span class="ls">ls</span><span class="dot">.</span>implicit.ly</a> : <a href="/readme#contacting">contacting</a></h1>
      <h2>Questions</h2>
      <p>Have a question? <a href="https://github.com/inbox/new?to=softprops" target="_blank">Send me a message on github</a>. My name is <a href="https://github.com/softprops" target="_blank">softprops</a>. I'm friendly</p>
      <h2>Issues</h2>

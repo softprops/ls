@@ -6,7 +6,7 @@ object Templates {
 
   val homeLink =
     <span class="home-link">
-      What is everyone else <a href="/">building</a>?
+      So, what is everyone else <a href="/">building</a>?
     </span>
 
   def userLink(u: User) =
@@ -110,7 +110,7 @@ object Templates {
   val index = layout(
     <div id="index">
       <div>
-        <h1><span class="ls">ls</span><span class="dot">.</span>implicit.ly</h1>
+        <h1><a href="/"><span class="ls">ls</span><span class="dot">.</span>implicit.ly</a></h1>
         <h2>
           a card calalog of sorts for
             <a href="https://scala-lang.org" target="_blank">scala</a> libraries

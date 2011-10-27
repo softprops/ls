@@ -162,7 +162,7 @@ p {
     padding-left: .5em;
   }
   .tags {
-    .tag {
+    .tag:visited, .tag:link {
       .rounded;
       padding:0 .25em;
       display:inline-block;
@@ -257,6 +257,10 @@ pre {
   color:#fff;
   code {
     text-shadow:0 1px #333;
+    .comment {
+      //color: #93FF41;
+      color:#E1FDCB;
+    }
   }
   padding:.25em;
 }
@@ -265,9 +269,6 @@ code {
   font-family: @fancy-code-font;
   text-shadow:0 1px #fff;
   word-wrap:break-word;
-  .comment {
-    color:@light-color;
-  }
 }
 
 h1 {
@@ -276,11 +277,13 @@ h1 {
   font-family: @fancy-font;
   margin: 0 0 .25em 0;
   line-height:1em;
-  color:#333;
-  .ls {
+  a:link, a:visited {
+    color:#333;
+  }
+  a:link .ls, a:visited .ls {
     color:@highlight-color;
   }
-  .dot {
+  a:link .dot, a:visited .dot {
     color:@light-color;
   }
 }
@@ -312,9 +315,9 @@ a:link, a:visited {
   color: @link-color;
 }
 
-a span {
-  color:@highlight-color;
-}
+//a span {
+//  color:@highlight-color;
+//}
 
 .help {
   font-size:50%;
