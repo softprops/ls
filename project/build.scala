@@ -5,6 +5,7 @@ object Build extends sbt.Build {
   import coffeescript.CoffeeScript
   import CoffeeScript._
   import less.Plugin._
+  import heroic.Plugin._
 
   object Resolvers {
     val coda = "coda" at "http://repo.codahale.com"
@@ -27,7 +28,7 @@ object Build extends sbt.Build {
                              "net.databinder" %% "dispatch-http" % "0.8.5",
                              "net.databinder" %% "unfiltered-netty-server" % "0.5.0",
                              "com.mongodb.casbah" %% "casbah" % "2.1.5-1"
-                           )) ++ CoffeeScript.coffeeSettings ++ lessSettings ++ Seq(
+                           )) ++ coffeeSettings ++ lessSettings ++ heroicSettings ++ Seq(
                            (targetDirectory in Coffee) <<= (resourceManaged in Compile) { _ / "www" / "js" },
                            (resourceManaged in (Compile, LessKeys.less)) <<= (resourceManaged in Compile) { _ / "www" / "css" },
                            (LessKeys.mini in (Compile, LessKeys.less)) := true,
