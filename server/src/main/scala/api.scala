@@ -101,8 +101,13 @@ object Api extends Logged {
      case GET(Path(Seg("api" :: "search" :: Nil)) & Params(p)) =>
        val expect = for {
          q <- lookup("q") is required("missing")
+         pg <- lookup("page") is optional[String, String]
+         lim <- lookup("limit") is optional[String, String]
        } yield {
-           Libraries.any(q.get.split("""\s+"""))()(asJson)
+           Libraries.any(q.get.split("""\s+"""))(
+             pg.get.getOrElse("1").toInt,
+             lim.get.getOrElse("20").toInt
+           )(asJson)
        }
        expect(p) orFail { errors =>
          BadRequest ~> ResponseString(

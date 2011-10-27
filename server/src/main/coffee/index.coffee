@@ -53,7 +53,7 @@ $ ->
   if window.location.hash.length
     term = window.location.hash.substring(1)
     $("#q").val(term)
-    ls.search term, display(1)
+    ls.search term, 1, perPage+1, display(1)
   else
     ls.libraries 1, perPage+1, display(1)
 
@@ -66,7 +66,7 @@ $ ->
   search = () ->
     q = $.trim($("#q").val())
     if q.length > 2
-      ls.search q, display
+      ls.search q, 1, perPage+1, display
     else if q.length is 0
       ls.libraries 1, perPage+1, display(1)
 

@@ -10,8 +10,8 @@ $ ->
       libraries: (pg, lim, f) ->
         ($.get "#{api}/libraries", page: pg, limit: lim, (libs) -> f libs).error(fallback f)
       # any search api by query term(s) in q
-      search: (q, f) ->
-        ($.get "#{api}/search", q: q, (libs) -> f libs).error(fallback f)
+      search: (q, pg, lim, f) ->
+        ($.get "#{api}/search", q: q, page: pg, limit: lim, (libs) -> f libs).error(fallback f)
       # list of libraries associated with a project
       projects: (u, r, f) ->
         ($.get "${api}/repositories/#{u}/#{r}", (libs) -> f libs).error(fallback f)

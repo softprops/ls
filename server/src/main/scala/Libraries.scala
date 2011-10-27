@@ -33,7 +33,8 @@ object Conversions {
         StopWords.contains(_)
       )
 
-  implicit val libraryVersionsToDbObject: LibraryVersions => DBObject = (l: LibraryVersions) =>
+  implicit val libraryVersionsToDbObject: LibraryVersions => DBObject =
+    (l: LibraryVersions) =>
       Obj(
       "organization" -> l.organization,
       "name" -> l.name,
@@ -45,7 +46,7 @@ object Conversions {
       "ghuser" -> l.ghuser,
       "ghrepo" -> l.ghrepo,
       "updated" -> new Date().getTime,
-      "contributors" -> 
+      "contributors" ->
         l.contributors.getOrElse(Nil).map { c =>
           Obj(
             "login" -> c.login,
@@ -55,51 +56,55 @@ object Conversions {
           )
         },
       "versions" -> versionsToDbObjects(l.versions)
-    )  
+    )
 
-  implicit val libraryToDbObject: Library => DBObject = (l: Library) =>
+  def libraryDepToDbObject(m: ModuleID) =
     Obj(
-      "organization" -> l.organization,
-      "name" -> l.name,
-      "description" -> l.description,
-      "_keywords" -> keywords(l),
-      "tags" -> l.tags,
-      "site" -> l.site,
-      "sbt" -> l.sbt,
-      "ghuser" -> l.ghuser,
-      "ghrepo" -> l.ghrepo,
-      "contributors" -> 
-        l.contributors.getOrElse(Nil).map { c =>
-          Obj(
-            "login" -> c.login,
-            "id" -> c.id,
-            "avatar_url" -> c.avatar_url,
-            "url" -> c.url
-          )
-        },
-      "updated" -> new Date().getTime, 
-      "versions" -> 
-        Seq(Obj( // this should NOT delete any exisiting versions
-          "version" -> l.version,
-          "docs" -> l.docs,
-          "resolvers" -> l.resolvers,
-          "library_dependencies" ->
-            l.library_dependencies.map { dl =>
-              Obj(
-                "organization" -> dl.organization,
-                "name" -> dl.name,
-                "version" -> dl.version
-              )
-           },
-          "licenses" -> l.licenses.map {
-            case License(n, u) => Obj(
-              "name" -> n,
-              "url" -> u
+      "organization" -> m.organization,
+      "name" -> m.name,
+      "version" -> m.version
+    )
+
+  def licenseToDbObject(l: License) = l match {
+    case License(n, u) => Obj(
+      "name" -> n,
+      "url" -> u
+    )
+  }
+
+  implicit val libraryToDbObject: Library => DBObject =
+    (l: Library) =>
+      Obj(
+        "organization" -> l.organization,
+        "name" -> l.name,
+        "description" -> l.description,
+        "_keywords" -> keywords(l),
+        "tags" -> l.tags,
+        "site" -> l.site,
+        "sbt" -> l.sbt,
+        "ghuser" -> l.ghuser,
+        "ghrepo" -> l.ghrepo,
+        "contributors" ->
+          l.contributors.getOrElse(Nil).map { c =>
+            Obj(
+              "login" -> c.login,
+              "id" -> c.id,
+              "avatar_url" -> c.avatar_url,
+              "url" -> c.url
             )
           },
-          "scala_versions" -> l.scala_versions
-        ))
-    )
+        "updated" -> new Date().getTime,
+        "versions" ->
+          Seq(Obj( // this should NOT delete any exisiting versions
+            "version" -> l.version,
+            "docs" -> l.docs,
+            "resolvers" -> l.resolvers,
+            "library_dependencies" ->
+              l.library_dependencies.map(libraryDepToDbObject),
+            "licenses" -> l.licenses.map(licenseToDbObject),
+            "scala_versions" -> l.scala_versions
+          ))
+      )
 
   private def versionsToDbObjects(versions: Seq[Version]) =
     versions.map { v =>
@@ -108,19 +113,8 @@ object Conversions {
         "docs" -> v.docs,
         "resolvers" -> v.resolvers,
         "library_dependencies" ->
-          v.library_dependencies.map { dl =>
-            Obj(
-              "organization" -> dl.organization,
-              "name" -> dl.name,
-              "version" -> dl.version
-            )
-          },
-          "licenses" -> v.licenses.map {
-            case License(n, u) => Obj(
-              "name" -> n,
-              "url" -> u
-            )
-          },
+          v.library_dependencies.map(libraryDepToDbObject),
+          "licenses" -> v.licenses.map(licenseToDbObject),
           "scala_versions" -> v.scala_versions
       )
     }
@@ -229,7 +223,7 @@ object Libraries extends Logged {
     }
 
   /** search by any search terms */
-  def any[T, C](terms: Seq[String])(latest: Boolean = true, page: Int = 1,
+  def any[T, C](terms: Seq[String])(page: Int = 1,
                                     lim: Int = DefaultLimit)(f: Iterable[C] => T)
               (implicit cct: CanConvertListTo[C]) =
    libraries { c =>
