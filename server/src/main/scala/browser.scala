@@ -58,6 +58,8 @@ object Templates {
 
   def dep(m: ModuleID) = <span><span>{ m.name }</span><span class="at">@</span><span>{ m.version }</span></span>
 
+ 
+
   def version(l: LibraryVersions, v: Version, sel: Boolean) =
     <div class={ "version %s" format(if(sel) "sel" else "") } id={ "v-%s-%s" format(l.name, v.version.replaceAll("[.]", "-")) }>
       <div class="section version-name">
@@ -66,8 +68,9 @@ object Templates {
       </div>
       <div class="section install">
         <h3>Install</h3>
-        <p>Add the following to your sbt build definition</p>
-        { install(ModuleID(l.organization, l.name, v.version), v.resolvers, v.scala_versions, l.sbt) }
+        <div>
+         { installInfo(ModuleID(l.organization, l.name, v.version), v.resolvers, v.scala_versions, l.sbt) }
+        </div>
       </div>
       <div class="section scala-versions">
         <h3>Published for</h3><p>scala <span>{
@@ -88,16 +91,47 @@ object Templates {
 
  // fixme: not very robust all all
  def resolver(name: String, uri: String) = 
-   <div>{ "resolvers += \"%s\" at \"%s\"".format(name, uri) }</div>
+    "\n\nresolvers += \"%s\" at \"%s\"".format(name, uri)
 
  def sbtDefaultResolver(s: String) =
    s.contains("http://repo1.maven.org/maven2/") || s.contains("http://scala-tools.org/repo-releases")
 
- /** Installation notes */
- def install(mid: ModuleID, resolvers: Seq[String], scalaVersions: Seq[String], plugin: Boolean) = {
-    <pre><code><span>{ "libraryDependencies += \"%s\"".format(mid.organization) }</span> %% <span>{ "\"%s\"".format(mid.name) }</span> % <span>{ "\"%s\"".format(mid.version) }</span>{ resolvers.filterNot(sbtDefaultResolver).zipWithIndex.map { case (r, i) => resolver("%s-resolver-%s".format(mid.name, i), r) } }
-</code></pre>
- }
+
+  def installInfo(mid: ModuleID, resolvers: Seq[String], scalaVersions: Seq[String], sbtPlugin: Boolean) =
+    if(sbtPlugin) installSbtPluginInfo(mid, resolvers: Seq[String], scalaVersions: Seq[String])
+    else installLibraryInfo(mid, resolvers: Seq[String], scalaVersions: Seq[String])
+
+  def installSbtPluginInfo(mid: ModuleID, resolvers: Seq[String], scalaVersions: Seq[String]) =
+    <p>Add the following to your sbt plugins definition. <span class="clippy">{
+     installSbtPluginText(mid, resolvers, scalaVersions)
+    }</span></p> ++ { installSbtPlugin(mid, resolvers, scalaVersions) }
+
+  def installSbtPluginText(mid: ModuleID, resolvers: Seq[String], scalaVersions: Seq[String]) =
+    "addSbtPlugin(\"%s\" %% \"%s\" %% \"%s\") %s".format(
+      mid.organization, mid.name, mid.version, 
+      (resolvers.filterNot(sbtDefaultResolver).zipWithIndex.map {
+        case (r, i) => resolver("%s-resolver-%s".format(mid.name, i), r) }
+      ).mkString("\n")
+   )
+
+  def installSbtPlugin(mid: ModuleID, resolvers: Seq[String], scalaVersions: Seq[String]) =
+    <pre><code>{ installSbtPluginText(mid, resolvers, scalaVersions) }</code></pre>
+
+  def installLibraryInfo(mid: ModuleID, resolvers: Seq[String], scalaVersions: Seq[String]) =
+   <p>Add the following to your sbt build definition. <span class="clippy">{
+     installLibraryText(mid, resolvers, scalaVersions)
+   }</span></p> ++ { installLibrary(mid, resolvers, scalaVersions) }
+
+ def installLibraryText(mid: ModuleID, resolvers: Seq[String], scalaVersions: Seq[String]) =
+   "libraryDependencies += \"%s\" %%%% \"%s\" %% \"%s\" %s".format(
+      mid.organization, mid.name, mid.version, 
+      (resolvers.filterNot(sbtDefaultResolver).zipWithIndex.map {
+        case (r, i) => resolver("%s-resolver-%s".format(mid.name, i), r) }
+      ).mkString("\n")
+   )
+
+ def installLibrary(mid: ModuleID, resolvers: Seq[String], scalaVersions: Seq[String]) =
+    <pre><code>{ installLibraryText(mid, resolvers, scalaVersions) }</code></pre>
 
   val readme = layout(Readme.body)()()
 
@@ -140,7 +174,7 @@ object Templates {
         <div id="foot">
           Published under Scala.
           <div>
-            <a href="/readme#publishing">Publish your library</a> | <a href="/readme#contacting">Contact your librarian</a>
+            <a href="/readme#publishing">Publish your library</a> &bull; <a href="/readme#contacting">Contact your librarian</a>
           </div>
         </div>
        <script type="text/javascript" src="/js/ls.js"></script>
@@ -184,7 +218,7 @@ object Browser extends Logged {
         </div>,
         left =
           <div class="author">
-            <h1>
+            <h1 class="author-name">
               <a href={ "/%s" format user }>{ user }</a>
             </h1>
             <h2 class="contributes">contributes to</h2>
@@ -193,8 +227,9 @@ object Browser extends Logged {
               on <a target="_blank" href={ "https://github.com/%s/" format user }>github</a>
             </p>
             <p>{ homeLink }</p>
-          </div>
-      )("authors")()
+          </div>,
+          title = "ls /%s" format user
+      )("jquery.clippy.min", "versions")()
 
     // Projects
     case GET(Path(Seg(user :: repo :: Nil))) =>
@@ -205,8 +240,8 @@ object Browser extends Logged {
       divided(
         right = <ul>{ libMarkup }</ul>,
         left  = <div class="lib">
-          <div clas="head">
-            <h1>
+          <div class="head">
+            <h1 class="project-name">
               <a href={"/%s/%s/" format(user, repo)}>{ repo }</a>
             </h1>
             <p class="gh">
@@ -223,7 +258,8 @@ object Browser extends Logged {
             </p>
             <p>{ homeLink }</p>
           </div>
-        </div>
-      )("show")()
+        </div>,
+        title = "ls %s/%s" format(user, repo)
+      )("jquery.clippy.min", "versions")()
   }
 }

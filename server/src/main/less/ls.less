@@ -171,19 +171,15 @@ p {
     }
   }
   .head {
-    .by-line {
-
+    .project-name {
+      letter-spacing:-3px
     }
-    border-bottom:1px solid #ccc;
   }
   h3 {
     font-size: 130%;
     line-height:1.5em;
     border-bottom:1px solid #ccc;
     margin-bottom:.25em;
-  }
-  .install pre {
-   
   }
 
   .scala-versions li {
@@ -200,6 +196,9 @@ p {
       width:80px;
       li {
          padding-left:.25em;
+      }
+      .sel a:link, .sel a:visited {
+        color: darken(@link-color, 20%);
       }
     }
     .version-details {
@@ -223,6 +222,9 @@ p {
       }
       .version.sel {
         display:block;
+        .at {
+          color: darken(@light-color, 20%);
+        }
       }
     }
   }
@@ -236,6 +238,9 @@ p {
 .author {
   .contributes {
     margin:.5em 0 0 0;
+  }
+  .author-name {
+    letter-spacing:-3px;
   }
 }
 

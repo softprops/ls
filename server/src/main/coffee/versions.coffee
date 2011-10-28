@@ -1,5 +1,4 @@
 $ = jQuery
-
 $ ->
   $('ul.version-nums li').hover (e) ->
     li = $(this)
@@ -9,3 +8,4 @@ $ ->
     id = li.attr('id')
     $(ul.parent()).parent().find('div.version-details div').removeClass('sel');
     $('#v-' + id).addClass('sel')
+  $('.clippy').clippy(color: "#eeeeee")
