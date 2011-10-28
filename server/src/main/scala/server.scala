@@ -21,7 +21,7 @@ object Server {
       .run(s => a match {
        case a@Array(_*) if(a contains "-b") => util.Browser.open(s.url)
        case _ =>
-         //Bootstrap.generate
+         Bootstrap.generate
       })
   }
 }

@@ -59,6 +59,22 @@ object Bootstrap {
               false,
               Some("unfiltered"), Some("unfiltered"),
               Some(Seq(user("n8han"), user("softprops")))
+      ),
+       Library("me.lessis", "ls-sbt", "0.1.0",
+              "an sbt interface for ls.implicit.ly",
+              "",
+              Seq("ls","plugin","sbt"),
+              "",
+              Seq("http://repo.lessis.me"),
+              Seq(
+                ModuleID("com.codahale", "jerkson", "0.5.0"),
+                ModuleID("net.databinder", "dispatch-http", "0.8.5")
+              ),
+              Seq("2.9.1"),
+              Seq(License("MIT", "https://github.com/unfiltered/unfiltered/blob/master/LICENSE")),
+              true,
+              Some("softprops"), Some("ls"),
+              Some(Seq(user("n8han"), user("softprops")))
       )
     )
       

@@ -56,7 +56,7 @@ object Templates {
       </div>
    </div>
 
-  def dep(m: ModuleID) = <span><span>{ m.name }</span><span class="at">@</span><span>{ m.version }</span></span>
+  def dep(m: ModuleID) = <li><span>{ m.name }</span><span class="at">@</span><span>{ m.version }</span></li>
 
  
 
