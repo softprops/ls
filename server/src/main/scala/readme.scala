@@ -14,7 +14,7 @@ object Readme {
         * 2 is not required, but highly recommended.
       </p>
       <p>
-        ls syncronizes your library's build information with a library version description file hosted on github, through a process called <code>lsyncing</code>. Lsyncing this information from sources publicly hosted on github means there is no need for authentication with ls's service.
+        ls synchronizes your library's build information with a library version description file hosted on github, through a process called <code>lsyncing</code>. Lsyncing this information from sources publicly hosted on github means there is no need for authentication with ls's service.
       </p>
       <h2 id="lsync-spec">Lsync specification</h2>
       <p>
