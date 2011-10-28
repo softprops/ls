@@ -5,6 +5,11 @@ case class Client(host: String) {
   import java.net.URLEncoder.encode
   val utf8 = java.nio.charset.Charset.forName("utf-8")
   lazy val api = url(host) / "api"
+
+  implicit def pathMappableRequest(r: dispatch.Request) = new {
+    def /?(p: Option[String]) = p.map(r / _).getOrElse(r)
+  }
+
   /** Find all projects by gh user */
   def author(name: String) = api / "authors" / name
   /** Find all projects by gh user and repo */
@@ -14,11 +19,9 @@ case class Client(host: String) {
   def version(name: String, repo: String, vers: String) =
     api / "projects" / name / repo / vers
   /** Find a target library by name and version, may return more than one if a published fork exists */
-  def lib(name: String, version: Option[String] = Some("latest"), user: Option[String] = None,
-          repo: Option[String] = None) = (user, repo) match {
-    case (Some(u), Some(r)) => api / "libraries" / name / version.getOrElse("latest") / u / r
-    case _ => api / "libraries" / name / version.getOrElse("latest")
-  }
+  def lib(name: String, version: Option[String] = None)(
+    user: Option[String])(repo: Option[String]) =
+      api / "libraries" / name /? version /? user /? repo
   /** Syncronize ls server with gihub library version info */
   def lsync(user: String, repo: String, vers: String) =
     (api.POST / "libraries") << Map(
@@ -26,7 +29,6 @@ case class Client(host: String) {
       "repo" -> repo,
       "version" -> vers
     )
-
   def search(kwords: Seq[String]) = 
     api / "search" <<? Map("q" -> kwords.mkString(" ").trim)
 }

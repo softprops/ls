@@ -5,6 +5,7 @@ import Keys._
 import Project.Initialize
 
 object Plugin extends sbt.Plugin {
+  import org.apache.http.conn.{HttpHostConnectException => ConnectionRefused}
   import scala.collection.JavaConversions._
   import com.codahale.jerkson.Json._
   import com.codahale.jerkson.AST._
@@ -44,6 +45,11 @@ object Plugin extends sbt.Plugin {
   private def http[T](hand: Handler[T]): T = {
     val h = new Http
     try { h(hand) }
+    catch {
+      case cf:ConnectionRefused => sys.error(
+        "ls is currently not available to take your call"
+      )
+    }
     finally { h.shutdown() }
   }
 
@@ -100,7 +106,7 @@ object Plugin extends sbt.Plugin {
      * [user/repository/]library[@version][:config1->config2]
      *
      * library is *required
-     * version is optional and may be "latest" or a target version
+     * version is optional
      * :config is optional will translate to an ivy config
      * user/repository/ is optional and namespaces the library (the common case
      *  being that most people will use the same name for their libraries
@@ -149,7 +155,7 @@ object Plugin extends sbt.Plugin {
       case LibraryParser.Pass(user, repo, lib, version, config) =>
         try {
           val ls = parseLibs(
-            http(Client("http://localhost:5000").lib(lib, version, user, repo) as_str)
+            http(Client("http://localhost:5000").lib(lib, version)(user)(repo) as_str)
           )
           val line = if(ls.size > 1) {
             sys.error("More than one libraries resolved")
@@ -245,25 +251,40 @@ object Plugin extends sbt.Plugin {
         case (args, out, host) =>
           val cli = Client(host)
           // todo: define query dsl
+          def named(name: String) = name.split("@") match {
+            case Array(name) => cli.lib(name)_
+            case Array(name, version) => cli.lib(name, version = Some(version))_
+          }
           args match {
             case Seq() => sys.error(
-              "Please provide at least one search term"
+              """Please provide at least one argument.
+                |usage: name@version user repo
+                | @version, user and repo are all optional
+                |""".stripMargin
             )
-            case Seq(user) =>
+            case Seq(name) =>
               try {
-                libraries(parseLibs(http(cli.author(user) as_str)),
-                          out.log, user)
+                libraries(parseLibs(http(named(name)(None)(None) as_str)),
+                   out.log, name.split("@"):_*)
               } catch {
                 case StatusCode(404, msg) =>
-                  out.log.info("No libraries for user %s" format user)
+                  out.log.info("%s library not found" format name)
               }
-            case Seq(user, repo) =>
+            case Seq(name, user) =>
               try {
-                libraries(parseLibs(http(cli.project(user, repo) as_str)),
-                          out.log, user, repo)
+                 libraries(parseLibs(http(named(name)(Some(user))(None) as_str)),
+                   out.log, name.split("@") :+ user: _*)
               } catch {
                 case StatusCode(404, msg) =>
-                  out.log.info("No libraries for user %s and repo %s" format(user, repo))
+                  out.log.info("%s library not found for %s" format(name, user))
+              }
+            case Seq(name, user, repo) =>
+              try {
+                libraries(parseLibs(http(named(name)(Some(user))(Some(repo)) as_str)),
+                   out.log, name.split("@") :+ user :+ repo: _*)
+              } catch {
+                case StatusCode(404, msg) =>
+                  out.log.info("%s library not found for %s/%s" format(name, user, repo))
               }
           }
       }

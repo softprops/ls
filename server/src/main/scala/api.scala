@@ -47,10 +47,10 @@ object Api extends Logged {
         log.info("synchronizing %s/%s/%s" format(user.get, repo.get, version.get))
         Github.extract(user get, repo get, version get) match {
           case (e@Seq(_), Seq(libraries)) =>
-            log.info("some err somes success(es)")
+            log.info("Some errors (%s), but some success(es)" format e)
             BadRequest ~> ResponseString(e map(_.msg) mkString(", "))
           case (e@Seq(_), _) =>
-            log.info("all errs")
+            log.info("All errs %s" format e)
             if(e.exists(unparsable))
               BadRequest ~> ResponseString(e map(_.msg) mkString(", "))
             else NotFound
@@ -91,7 +91,13 @@ object Api extends Logged {
       case name :: Nil => // just the name (latest implied)
         Libraries(name)(asJson)
       case name :: version :: Nil => // name with version 
-        Libraries(name/*, Some(version)*/)(asJson)
+        Libraries(name, version = Some(version))(asJson)
+      case name :: version :: user :: Nil =>
+        Libraries(name, version = Some(version),
+                  user = Some(user))(asJson)
+      case name :: version :: user :: repo :: Nil =>
+        Libraries(name, version = Some(version),
+                  user = Some(user), repo = Some(repo))(asJson)
       case _ => NotFound
     }
   }

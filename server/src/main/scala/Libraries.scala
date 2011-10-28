@@ -259,6 +259,7 @@ object Libraries extends Logged {
 
   /** Find by name + version and optionally user and repo */
   def apply[T, C](name: String,
+                  version: Option[String] = None,
                   user: Option[String] = None,
                   repo: Option[String] = None)
                 (f: Iterable[C] => T)(implicit cct: CanConvertListTo[C]) =
@@ -271,6 +272,8 @@ object Libraries extends Logged {
           Obj("ghuser" -> u)
         ) opt repo.map(r =>
           Obj("ghrepo" -> r)
+        ) opt version.map(v =>
+          Obj("versions.version" -> version)
         )
       log.info("query: %s" format query)
       f(cct(
