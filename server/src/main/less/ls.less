@@ -82,6 +82,18 @@ p {
 }
 
 #read {
+  background:#464646;
+  color:@background-color;
+  a:link, a:visited {
+    color: #fff;
+  }
+  #publishing {
+    text-align:left;
+    width:@container-width;
+    margin:0 auto;
+    padding-top:1em;
+  }
+
   h2 {
     color: darken(@default-color, 10%);
     font-weight:bold;
@@ -319,10 +331,6 @@ a:link, a:visited {
   text-decoration:none;
   color: @link-color;
 }
-
-//a span {
-//  color:@highlight-color;
-//}
 
 .help {
   font-size:50%;

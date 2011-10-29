@@ -46,4 +46,10 @@ object Build extends sbt.Build {
                             resolvers += Resolvers.coda
                           )) dependsOn(lib)
 
+  lazy val tools = Project("ls-tools", file("tools"),
+                         settings = buildSettings ++ Seq(
+                           libraryDependencies += "com.mongodb.casbah" %% "casbah" % "2.1.5-1",
+                           sbtPlugin := true
+                         )) dependsOn(lib)
+
 }

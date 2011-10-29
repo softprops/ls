@@ -120,7 +120,9 @@ object Plugin extends sbt.Plugin {
     }
   }
 
-  case class Lib(organization: String, name: String, versions: Seq[String], description: String)
+  case class Vers(version: String, resolvers: Seq[String])
+  case class Lib(organization: String, name: String, versions: Seq[Vers],
+                 description: String)
 
   // use ast parsing b/c of clf issue w/ jerkson case classes + sbt
   def parseLibs(s: String): Seq[Lib] = (parse[JValue](s) match {
@@ -130,13 +132,23 @@ object Plugin extends sbt.Plugin {
     case _ => Seq.empty[JValue]
   }).map( _ match {
     case Seq(JString(o), JString(n), JArray(vs), JString(d)) =>
-      Lib(o, n, vs.map(_ \ "version").map {
+      Lib(o, n, (vs.map(_ \ "version").map {
         case JString(s) => s
         case _ => sys.error(
-          "Unexpected Version format"
+          "Unexpected remote Version format"
         )
+      }).zip(vs.map(_ \ "resolvers").map {
+        case JArray(rs) => rs map {
+          case JString(r) => r
+          case _ => sys.error(
+            "Unexpected remote Version resolvers format"
+          )
+        }
+        case _ => sys.error("Unexpected remote Version resolvers format")
+      }).map {
+        case (version, resolvers) => Vers(version, resolvers)
       }, d)
-    case _ => sys.error("Unexpected Library format")
+    case _ => sys.error("Unexpected remote Library format")
   })
 
   /**
@@ -154,24 +166,39 @@ object Plugin extends sbt.Plugin {
     LibraryParser(dep) match {
       case LibraryParser.Pass(user, repo, lib, version, config) =>
         try {
+          def sbtDefaultResolver(s: String) =
+            s.contains("http://repo1.maven.org/maven2/") || s.contains("http://scala-tools.org/repo-releases")
+
           val ls = parseLibs(
             http(Client("http://localhost:5000").lib(lib, version)(user)(repo) as_str)
           )
-          val line = if(ls.size > 1) {
+          // one or more lines consisting of libraryDependency and resolvers
+          val lines: Seq[String] = if(ls.size > 1) {
             sys.error("More than one libraries resolved")
           } else {
             val l = ls(0)
             (version match {
-              case Some(v) => l.versions.find(_.equalsIgnoreCase(v))
+              case Some(v) => l.versions.find(_.version.equalsIgnoreCase(v))
               case _ => Some(l.versions(0))
             }) match {
               case Some(v) =>
-                ("""libraryDependencies += "%s" %%%% "%s" %% "%s"%s""" format(
-                  l.organization, l.name, l.versions(0), config match {
+
+                val depLine = ("""libraryDependencies += "%s" %%%% "%s" %% "%s"%s""" format(
+                  l.organization, l.name, v.version, config match {
                     case Some(c) => """ %% "%s" """.format(c)
                     case _ => ""
                   }
                 )).trim
+
+                val rsvrLines = (v.resolvers.filterNot(sbtDefaultResolver).zipWithIndex.map {
+                  case (url, i) =>
+                    "resolvers += \"%s\" at \"%s\"".format(
+                      "%s-resolver-%s".format(l.name, i),
+                      url
+                    )
+                })
+                depLine +: rsvrLines
+
               case _ => sys.error("Could not find %s version of this library. possible versions (%s)" format(
                 version.getOrElse("latest"), l.versions.mkString(", "))
               )
@@ -182,13 +209,16 @@ object Plugin extends sbt.Plugin {
           import BuiltinCommands.{imports, reapply, DefaultBootCommands}
 		      import CommandSupport.{DefaultsCommand, InitCommand}
 
+          // todo handle more than one lines (including updated resolvers)  fold?
+
 		      val settings = EvaluateConfigurations.evaluateSetting(
-            session.currentEval(), "<set>", imports(extracted), line, 0
+            session.currentEval(), "<set>", imports(extracted), lines(0), 0
           )(currentLoader)
 		      val append = Load.transformSettings(
             Load.projectScope(currentRef), currentRef.build, rootProject, settings
           )
-		      val newSession = session.appendSettings( append map (a => (a, line)))
+		      val newSession = session.appendSettings( append map (a => (a, lines(0))))
+
 		      val commands = DefaultsCommand +: InitCommand +: DefaultBootCommands
 		      reapply(newSession, structure,
             if(persistently) state.copy(remainingCommands = "session save" +: commands)
@@ -199,7 +229,9 @@ object Plugin extends sbt.Plugin {
           )
         }
       case LibraryParser.Fail => sys.error(
-        "Unexpected library format %s" format dep
+        "Unexpected library format %s. Try something like %s" format(
+          dep, "[user/repository/]library[@version][:config1->config2]"
+        )
       )
     }
 
@@ -318,7 +350,7 @@ object Plugin extends sbt.Plugin {
   }
 
   def libraries(libs: Seq[Lib], log: sbt.Logger, terms: String*) = {
-    val tups = libs.map(l => (l.name, l.versions.mkString(", "), l.description))
+    val tups = libs.map(l => (l.name, l.versions.map(_.version).mkString(", "), l.description))
     val len = math.max(tups.map{ case (n, vs, _ ) => "%s (%s)".format(n, vs).size }.sortWith(_>_).head, 10)
     val fmt = "%s %-" + len + "s # %s"
 
@@ -360,7 +392,12 @@ object Plugin extends sbt.Plugin {
     val GHRemote = """^git@github.com[:](\S+)/(\S+)[.]git$""".r
      def unapply(line: String) = line.split("""\s+""") match {
        case Array(_, GHRemote(user, repo), _) => Some(user, repo)
-       case a => println("ls requires a git repository: %s" format a.toList);None
+       case a => /*println(
+         "ls requires a github git remote: Your current remotes are: \n\t%s" format (
+             a.toList.mkString("\n\t")
+         )
+       )*/
+       None
      } 
    }
 

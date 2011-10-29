@@ -58,8 +58,6 @@ object Templates {
 
   def dep(m: ModuleID) = <li><span>{ m.name }</span><span class="at">@</span><span>{ m.version }</span></li>
 
- 
-
   def version(l: LibraryVersions, v: Version, sel: Boolean) =
     <div class={ "version %s" format(if(sel) "sel" else "") } id={ "v-%s-%s" format(l.name, v.version.replaceAll("[.]", "-")) }>
       <div class="section version-name">
@@ -174,9 +172,9 @@ object Templates {
         <div id="foot">
           Published under Scala.
           <div>
-            <a href="/readme#publishing">Publish your library</a> &bull; <a href="/readme#contacting">Contact your librarian</a>
+            <a href="/readme#publishing">Publish your library</a> &bull; <a href="https://github.com/inbox/new?to=softprops">Contact your librarian</a>
           </div>
-        </div>
+        </div> { Readme.body }
        <script type="text/javascript" src="/js/ls.js"></script>
        { scripts.map { s => <script type="text/javascript" src={"/js/%s.js" format s } /> } }
      </body>

@@ -4,21 +4,21 @@ object Readme {
   val body = 
     <div id="read">
       <div id="publishing">
-      <h1><a href="/"><span class="ls">ls</span><span class="dot">.</span>implicit.ly</a> : <a href="/readme#publishing">publishing</a></h1>
+      <h1><a href="/#publishing">publishing</a></h1>
       <h2>ls makes two assumptions about your Scala libraries</h2>
       <p>
         <ul>
-          <li>1) Your library is hosted on <a href="https://github.com">Github</a></li>
+          <li>1) Your library source is hosted on <a href="https://github.com">Github</a></li>
           <li>2) You build your projects with <a href="https://github.com/harrah/xsbt/wiki" target="_blank">sbt</a>*</li>
         </ul>
         * 2 is not required, but highly recommended.
       </p>
       <p>
-        ls synchronizes your library's build information with a library version description file hosted on github, through a process called <code>lsyncing</code>. Lsyncing this information from sources publicly hosted on github means there is no need for authentication with ls's service.
+        ls synchronizes your library's build information with a library version description file hosted on github, through a process called <code>lsyncing</code>. Lsyncing this information from sources publicly hosted on github means there is no need for authentication with ls's service. The author's commit access to the library implies their afflication with a given library.
       </p>
       <h2 id="lsync-spec">Lsync specification</h2>
       <p>
-        ls stores semi structured information about your library versions by capturing a json encoded file for each version of your library and tucks it for later retrieval by others. The following is a description of the format that ls uses to capture this information.
+        ls stores semi-structured information about your library's versions by capturing a the contents of a json encoded file for each version of your library, tucking it away for later retrieval by others. The following is a description of the format that ls uses to capture this information.
       <pre><code>{{
  "organization":"org.yourdomain", <span class="comment">// your mvn/ivy organization identifier</span>
  "name":"my-awesome-library", <span class="comment">// the name of your awesome project</span>
@@ -43,7 +43,7 @@ object Readme {
   ], <span class="comment">// what versions of scala is your library compiled for</span>
  "sbt": false <span class="comment">// is your library and sbt plugin?</span>
 }}</code></pre>
-      <p>To perform an lsync for a given repository simply perform an http <code>POST</code> to ls's <code>libraries</code> path</p>
+      <p>To perform an lsync for a given repository simply perform the followin http <code>POST</code></p>
       <pre><code>curl -X POST http://ls.implicit.ly/api/libraries 
   -F="user=your-gh-user"
   -F="repo=your-gh-repo"
@@ -65,7 +65,7 @@ object Readme {
       </p>
       <h2>Lsync'ing from sbt</h2>
       <p>
-        From any project just type <code>ls:write-version</code> and the plugin will generate a new version.json file for your library's current version.
+        From any project, just type <code>ls:write-version</code> and the plugin will generate a new version.json file for your library's current version.
         When you are ready to publish your library's version information, commit and push your version info file to Github then, from sbt, type
         <pre><code>sbt> ls:lsync</code></pre>
        If all goes well, you will then be able to find your library on ls.implicit.ly.
@@ -76,7 +76,7 @@ object Readme {
       </p>
       <h2>Installing scala libraries from sbt</h2>
       <p>
-        Sbt already provides a means installing libraries through its <code>libraryDependencies</code> setting but requires you know a lot of information up front. ls can make that workflow even simplier.
+        Sbt provides a means of declarativley defining <code>library dependencies</code> setting but requires you know a lot of information up front. ls can make that workflow even simplier.
         ls provides functionality for both <code>trying</code> and <code>installing</code> scala libraries.
       </p>
       <p>
@@ -93,13 +93,6 @@ object Readme {
       <p>
         It is not recommended to lsync version information across repos but in the case that library author has, ls will prompt you for the repo you wish to use.
       </p>
-    </div>
-    <div id="contacting">
-     <h1><a href="/"><span class="ls">ls</span><span class="dot">.</span>implicit.ly</a> : <a href="/readme#contacting">contacting</a></h1>
-     <h2>Questions</h2>
-     <p>Have a question? <a href="https://github.com/inbox/new?to=softprops" target="_blank">Send me a message on github</a>. My name is <a href="https://github.com/softprops" target="_blank">softprops</a>. I'm friendly</p>
-     <h2>Issues</h2>
-     <p>Have an issue or suggestion? <a href="https://github.com/softprops/ls/issues/new" target="_blank">Post one on github</a></p>
     </div>
   </div>
 }
