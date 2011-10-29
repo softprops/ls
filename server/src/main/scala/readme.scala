@@ -43,7 +43,7 @@ object Readme {
   ], <span class="comment">// what versions of scala is your library compiled for</span>
  "sbt": false <span class="comment">// is your library and sbt plugin?</span>
 }}</code></pre>
-      <p>To perform an lsync for a given repository simply perform the followin http <code>POST</code></p>
+      <p>To perform an lsync for a given project, simply perform the following http <code>POST</code></p>
       <pre><code>curl -X POST http://ls.implicit.ly/api/libraries 
   -F="user=your-gh-user"
   -F="repo=your-gh-repo"
@@ -51,7 +51,7 @@ object Readme {
      ls will then recursively extract any files in the <code>github.com/your-gh-user/your-gh-repo</code> repository for files matching <code>src/main/ls/version-to-sync.json</code> and capture the above information.
       </p>
       <h2 id="plugin">Sbt plugin</h2>
-      <p>This is a lot of information to author by hand. To make things simple, just use the sbt plugin, <a href="#" target="_blank">ls-sbt</a>. The purpose of the plugin is three-fold</p>
+      <p>The spec outlined above is a lot of information to author by hand. To make things simpler, just use the sbt plugin, <a href="#" target="_blank">ls-sbt</a> which will generate this for you. The purpose of the plugin is three-fold</p>
       <p>
         <ul>
           <li>1) To make it easy to lsync your scala library's version info</li>
