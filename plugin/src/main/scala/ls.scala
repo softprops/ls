@@ -209,18 +209,32 @@ object Plugin extends sbt.Plugin {
           import BuiltinCommands.{imports, reapply, DefaultBootCommands}
 		      import CommandSupport.{DefaultsCommand, InitCommand}
 
-          // todo handle more than one lines (including updated resolvers)  fold?
-
+          val (first, rest) = (lines.head, lines.tail)
+          
 		      val settings = EvaluateConfigurations.evaluateSetting(
-            session.currentEval(), "<set>", imports(extracted), lines(0), 0
+            session.currentEval(), "<set>", imports(extracted), first, 0
           )(currentLoader)
 		      val append = Load.transformSettings(
             Load.projectScope(currentRef), currentRef.build, rootProject, settings
           )
-		      val newSession = session.appendSettings( append map (a => (a, lines(0))))
+		      val newSession = session.appendSettings( append map (a => (a, first)))
+
+          val (_, _, newestSession) = ((settings, append, newSession) /: rest)((a, line) => a match {
+             case (set, app, ses) =>
+                val settings = EvaluateConfigurations.evaluateSetting(
+                  ses.currentEval(), "<set>", imports(extracted), line, 0
+                )(currentLoader)
+		          val append = Load.transformSettings(
+                Load.projectScope(currentRef), currentRef.build, rootProject, set
+              )
+		          val newSession = ses.appendSettings( append map (a => (a, line)))
+              (settings, append, newSession)
+            }
+          )
+
 
 		      val commands = DefaultsCommand +: InitCommand +: DefaultBootCommands
-		      reapply(newSession, structure,
+		      reapply(newestSession, structure,
             if(persistently) state.copy(remainingCommands = "session save" +: commands)
             else state)
         } catch {
