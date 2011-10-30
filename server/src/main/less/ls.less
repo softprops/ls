@@ -8,7 +8,7 @@ html, body, div, span, applet, object, iframe,html,body,div,span,applet,object,i
 @fancy-font: 'Ubuntu Condensed', sans-serif;
 @fancy-code-font: 'Ubuntu Mono', sans-serif;
 @default-font: 'Sorts Mill Goudy', serif;/*Helvetica Neue, Helvetica;*/
-@default-color: #968D8C;/*#A0A0B1;*/
+@default-color: #968D8C;
 @light-color: #E7E7E7;
 @container-width: 940px;
 @sel-color: darken(@default-color, 20%);
@@ -275,8 +275,10 @@ pre {
   code {
     text-shadow:0 1px #333;
     .comment {
-      //color: #93FF41;
-      color:#E1FDCB;
+      color: @default-color;
+    }
+    .key {
+      color:@link-color;
     }
   }
   padding:.25em;

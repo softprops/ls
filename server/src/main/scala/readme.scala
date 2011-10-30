@@ -20,28 +20,28 @@ object Readme {
       <p>
         ls stores semi-structured information about your library's versions by capturing a the contents of a json encoded file for each version of your library, tucking it away for later retrieval by others. The following is a description of the format that ls uses to capture this information.
       <pre><code>{{
- "organization":"org.yourdomain", <span class="comment">// your mvn/ivy organization identifier</span>
- "name":"my-awesome-library", <span class="comment">// the name of your awesome project</span>
- "version":"1.0", <span class="comment">// the version of you awesome project</span>
- "description":"Hot stuff comin' through", <span class="comment">// a short description that describes your project</span>
- "site":"http://yourdomain.org/awesome-library-overview", <span class="comment">// where we can find more info on your project</span>
- "tags": ["awesome"], <span class="comment">// tags help categorize your library for others to find</span>
- "docs":"https://yourdomain.org/awesome-library-docs", <span class="comment">// where we can find documentation on your projects api</span>
- "licenses": [{{ <span class="comment">// how do you want to distribute your library</span>
+ <span class="key">"organization"</span>:"org.yourdomain",             <span class="comment"># your mvn/ivy organization identifier</span>
+ <span class="key">"name"</span>:"my-awesome-library",                 <span class="comment"># the name of your awesome library</span>
+ <span class="key">"version"</span>:"1.0",                             <span class="comment"># the version of your awesome library</span>
+ <span class="key">"description"</span>:"Hot stuff comin' through",    <span class="comment"># a quaint description of what it provides</span>
+ <span class="key">"site"</span>:"http://yourdomain.org/awesome-library-overview", <span class="comment"># a uri for more info &amp; resources</span>
+ <span class="key">"tags"</span>: ["awesome"],                          <span class="comment"># keywords to help others to find your library</span>
+ <span class="key">"docs"</span>:"https://yourdomain.org/awesome-library-docs", <span class="comment"># a uri for api docs</span>
+ <span class="key">"licenses"</span>: [{{                               <span class="comment"># how can others use your library</span>
    "name": "MIT", 
    "url":"https://yourdomain.org/awesome-library/LICENSE"
   }}],
- "resolvers": ["http://repo.yourdomain.org/"], <span class="comment">// how can we resolve your library</span>
- "library_dependencies": [{{ <span class="comment">// what does your library depend on</span>
+ <span class="key">"resolvers"</span>: ["http://repo.yourdomain.org/"], <span class="comment"># when can others find your library</span>
+ <span class="key">"library_dependencies"</span>: [{{                    <span class="comment"># what does your library depend on</span>
    "organization":"org.otherdomain",
    "name": "my-awesome-dependency",
    "version": "0.1.0"
   }}],
- "scala_versions": [
+ <span class="key">"scala_versions"</span>: [                           <span class="comment"># what versions of scala is your library compiled for</span>
    "2.8.0","2.8.1","2.8.2",
    "2.9.0","2.9.0-1","2.9.1"
-  ], <span class="comment">// what versions of scala is your library compiled for</span>
- "sbt": false <span class="comment">// is your library and sbt plugin?</span>
+  ],                                 
+ <span class="key">"sbt"</span>: false                                  <span class="comment"># is your library and sbt plugin?</span>
 }}</code></pre>
       <p>To perform an lsync for a given project, simply perform the following http <code>POST</code></p>
       <pre><code>curl -X POST http://ls.implicit.ly/api/libraries 
@@ -51,7 +51,7 @@ object Readme {
      ls will then recursively extract any files in the <code>github.com/your-gh-user/your-gh-repo</code> repository for files matching <code>src/main/ls/version-to-sync.json</code> and capture the above information.
       </p>
       <h2 id="plugin">Sbt plugin</h2>
-      <p>The spec outlined above is a lot of information to author by hand. To make things simpler, just use the sbt plugin, <a href="#" target="_blank">ls-sbt</a> which will generate this for you. The purpose of the plugin is three-fold</p>
+      <p>The spec outlined above is a lot of information to author by hand. To make things simpler, just use the sbt plugin, <a href="/softprops/ls/#ls-sbt" target="_blank">ls-sbt</a> which will generate this for you. The purpose of the plugin is three-fold</p>
       <p>
         <ul>
           <li>1) To make it easy to lsync your scala library's version info</li>

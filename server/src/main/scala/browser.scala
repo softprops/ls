@@ -131,8 +131,6 @@ object Templates {
  def installLibrary(mid: ModuleID, resolvers: Seq[String], scalaVersions: Seq[String]) =
     <pre><code>{ installLibraryText(mid, resolvers, scalaVersions) }</code></pre>
 
-  val readme = layout(Readme.body)()()
-
   def divided(right: NodeSeq, left: NodeSeq, title: String = "ls")(scripts: String*)(sheets: String*) =
     layout(
       <div id="left"> { left } </div> ++ <div id="right"> { right } </div>,
@@ -172,7 +170,7 @@ object Templates {
         <div id="foot">
           Published under Scala.
           <div>
-            <a href="/readme#publishing">Publish your library</a> &bull; <a href="https://github.com/inbox/new?to=softprops">Contact your librarian</a>
+            <a href="#publishing">Publish your library</a> &bull; <a href="https://github.com/inbox/new?to=softprops">Contact your librarian</a>
           </div>
         </div> { Readme.body }
        <script type="text/javascript" src="/js/ls.js"></script>
@@ -193,10 +191,6 @@ object Browser extends Logged {
   /** Paths for which we care not */
   def trapdoor: Cycle.Intent[Any, Any] = {
     case GET(Path("/favicon.ico")) => NotFound
-  }
-
-  def read: Cycle.Intent[Any, Any] = {
-    case GET(Path("/readme")) => readme
   }
 
   def home: Cycle.Intent[Any, Any] = {
