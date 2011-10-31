@@ -5,6 +5,7 @@ import Keys._
 import Project.Initialize
 
 object Plugin extends sbt.Plugin {
+  import ls.ClassLoaders._
   import org.apache.http.conn.{HttpHostConnectException => ConnectionRefused}
   import scala.collection.JavaConversions._
   import com.codahale.jerkson.Json._
@@ -14,6 +15,7 @@ object Plugin extends sbt.Plugin {
   import java.net.URL
   import dispatch._
   import sbt.{ModuleID => SbtModuleID}
+  import ls.LibraryVersions
 
   // fixme. this only serves to make the repl usage more user-friendly
   val Ls = config("ls")
@@ -120,37 +122,6 @@ object Plugin extends sbt.Plugin {
     }
   }
 
-  case class Vers(version: String, resolvers: Seq[String])
-  case class Lib(organization: String, name: String, versions: Seq[Vers],
-                 description: String)
-
-  // use ast parsing b/c of clf issue w/ jerkson case classes + sbt
-  def parseLibs(s: String): Seq[Lib] = (parse[JValue](s) match {
-    case JArray(libs) => libs map {
-      l => Seq(l \ "organization", l \ "name", l \ "versions" , l \ "description")
-    }
-    case _ => Seq.empty[JValue]
-  }).map( _ match {
-    case Seq(JString(o), JString(n), JArray(vs), JString(d)) =>
-      Lib(o, n, (vs.map(_ \ "version").map {
-        case JString(s) => s
-        case _ => sys.error(
-          "Unexpected remote Version format"
-        )
-      }).zip(vs.map(_ \ "resolvers").map {
-        case JArray(rs) => rs map {
-          case JString(r) => r
-          case _ => sys.error(
-            "Unexpected remote Version resolvers format"
-          )
-        }
-        case _ => sys.error("Unexpected remote Version resolvers format")
-      }).map {
-        case (version, resolvers) => Vers(version, resolvers)
-      }, d)
-    case _ => sys.error("Unexpected remote Library format")
-  })
-
   /**
    * Shortcut for adding abbreviated library dependencies.
    * use ls-try for testing out transient library dependencies
@@ -169,9 +140,11 @@ object Plugin extends sbt.Plugin {
           def sbtDefaultResolver(s: String) =
             s.contains("http://repo1.maven.org/maven2/") || s.contains("http://scala-tools.org/repo-releases")
 
-          val ls = parseLibs(
-            http(Client("http://localhost:5000").lib(lib, version)(user)(repo) as_str)
-          )
+          val ls = inClassLoader(classOf[LibraryVersions]) { 
+            parse[Seq[LibraryVersions]](
+              http(Client("http://localhost:5000").lib(lib, version)(user)(repo) as_str)
+            )
+          }
           // one or more lines consisting of libraryDependency and resolvers
           val lines: Seq[String] = if(ls.size > 1) {
             sys.error("More than one libraries resolved")
@@ -310,24 +283,30 @@ object Plugin extends sbt.Plugin {
             )
             case Seq(name) =>
               try {
-                libraries(parseLibs(http(named(name)(None)(None) as_str)),
-                   out.log, name.split("@"):_*)
+                libraries(
+                  inClassLoader(classOf[LibraryVersions]) {
+                    parse[Seq[LibraryVersions]](http(named(name)(None)(None) as_str))
+                  }, out.log, name.split("@"):_*)
               } catch {
                 case StatusCode(404, msg) =>
                   out.log.info("%s library not found" format name)
               }
             case Seq(name, user) =>
               try {
-                 libraries(parseLibs(http(named(name)(Some(user))(None) as_str)),
-                   out.log, name.split("@") :+ user: _*)
+                 libraries(
+                   inClassLoader(classOf[LibraryVersions]) {
+                     parse[Seq[LibraryVersions]](http(named(name)(Some(user))(None) as_str))
+                   }, out.log, name.split("@") :+ user: _*)
               } catch {
                 case StatusCode(404, msg) =>
                   out.log.info("%s library not found for %s" format(name, user))
               }
             case Seq(name, user, repo) =>
               try {
-                libraries(parseLibs(http(named(name)(Some(user))(Some(repo)) as_str)),
-                   out.log, name.split("@") :+ user :+ repo: _*)
+                libraries(
+                  inClassLoader(classOf[LibraryVersions]) {
+                    parse[Seq[LibraryVersions]](http(named(name)(Some(user))(Some(repo)) as_str))
+                  }, out.log, name.split("@") :+ user :+ repo: _*)
               } catch {
                 case StatusCode(404, msg) =>
                   out.log.info("%s library not found for %s/%s" format(name, user, repo))
@@ -345,7 +324,9 @@ object Plugin extends sbt.Plugin {
             case kwords =>
               val cli = Client(host)
               libraries(
-                parseLibs(http(cli.search(kwords.toSeq) as_str)),
+                inClassLoader(classOf[LibraryVersions]) {
+                  parse[Seq[LibraryVersions]](http(cli.search(kwords.toSeq) as_str))
+                },
                 out.log,
                 args:_*
               )
@@ -363,7 +344,7 @@ object Plugin extends sbt.Plugin {
     def get: T
   }
 
-  def libraries(libs: Seq[Lib], log: sbt.Logger, terms: String*) = {
+  def libraries(libs: Seq[LibraryVersions], log: sbt.Logger, terms: String*) = {
     val tups = libs.map(l => (l.name, l.versions.map(_.version).mkString(", "), l.description))
     val len = math.max(tups.map{ case (n, vs, _ ) => "%s (%s)".format(n, vs).size }.sortWith(_>_).head, 10)
     val fmt = "%s %-" + len + "s # %s"
