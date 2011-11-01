@@ -17,31 +17,30 @@ object Plugin extends sbt.Plugin {
   import sbt.{ModuleID => SbtModuleID}
   import ls.LibraryVersions
 
-  // fixme. this only serves to make the repl usage more user-friendly
-  val Ls = config("ls")
-
   object LsKeys {
-    val colors = SettingKey[Boolean]("colors", "Colorize logging")
-    val versionInfo = TaskKey[VersionInfo]("version-info", "Information about a version of a project")
-    val versionFile = SettingKey[File]("File storing version descriptor file")
-    val writeVersion = TaskKey[Unit]("write-version", "Writes version data to descriptor file")
+    val colors = SettingKey[Boolean](key("colors"), "Colorize logging")
+    val versionInfo = TaskKey[VersionInfo](key("version-info"), "Information about a version of a project")
+    val versionFile = SettingKey[File](key("version-file"), "File storing version descriptor file")
+    val writeVersion = TaskKey[Unit](key("write-version"), "Writes version data to descriptor file")
     val lsync = TaskKey[Unit]("lsync", "Synchronizes github project info with ls server")
     val dependencyFilter = SettingKey[SbtModuleID => Boolean]("dependency-filter",
                                                               "Filters library dependencies included in version-info")
     // optional attributes
-    val tags = SettingKey[Seq[String]]("tags", "List of taxonomy tags for the library")
-    val docsUrl = SettingKey[Option[URL]]("doc-url", "Url for library documentation")
-    val optionals = SettingKey[Optionals]("optionals", "Optional project info")
+    val tags = SettingKey[Seq[String]](key("tags"), "List of taxonomy tags for the library")
+    val docsUrl = SettingKey[Option[URL]](key("doc-url"), "Url for library documentation")
+    val optionals = SettingKey[Optionals](key("optionals"), "Optional project info")
 
-    val ghUser = SettingKey[Option[String]]("gh-user", "Github user name")
-    val ghRepo = SettingKey[Option[String]]("gh-repo", "Github repository name")
+    val ghUser = SettingKey[Option[String]](key("gh-user"), "Github user name")
+    val ghRepo = SettingKey[Option[String]](key("gh-repo"), "Github repository name")
 
     // api
-    val lsHost = SettingKey[String]("ls-host", "Host ls server")
-    val find = InputKey[Unit]("find",
+    val lsHost = SettingKey[String](key("host"), "Host ls server")
+    val find = InputKey[Unit](key("find"),
                               "Search for libraries based on <user>, <user> <repo>, or <user> <repo> <version>")
-    val search = InputKey[Unit]("search",
+    val search = InputKey[Unit](key("search"),
                              "Search for libraries based on arbitrary keywords")
+
+    private def key(name: String) = "ls-%s" format name
   }
 
   private def http[T](hand: Handler[T]): T = {
@@ -56,7 +55,7 @@ object Plugin extends sbt.Plugin {
   }
 
   private def lsyncTask: Initialize[Task[Unit]] =
-    (streams, ghUser, ghRepo, version in Ls, lsHost) map {
+    (streams, ghUser, ghRepo, version in lsync, lsHost) map {
       (out, maybeUser, maybeRepo, vers, host) =>
         (maybeUser, maybeRepo) match {
           case (Some(user), Some(repo)) =>
@@ -226,27 +225,27 @@ object Plugin extends sbt.Plugin {
 
   def lsInstall = Command.single("ls-install")(depend(true))
 
-  def lsSettings: Seq[Setting[_]] = inConfig(Ls)(Seq(
+  def lsSettings: Seq[Setting[_]] = Seq(
     colors := true,
-    version in Ls <<= (version in Runtime)(_.replace("-SNAPSHOT","")),
-    sourceDirectory in Ls <<= (sourceDirectory in Compile)( _ / "ls"),
-    versionFile <<= (sourceDirectory in Ls, version in Ls)(_ / "%s.json".format(_)),
+    version in lsync <<= (version in Runtime)(_.replace("-SNAPSHOT","")),
+    sourceDirectory in lsync <<= (sourceDirectory in Compile)( _ / "ls"),
+    versionFile <<= (sourceDirectory in lsync, version in lsync)(_ / "%s.json".format(_)),
     dependencyFilter := { m => m.organization != "org.scala-lang" },
     docsUrl := None,
     tags := Nil,
-    description in Ls <<= (description in Runtime),
-    homepage in Ls <<= (homepage in Runtime),
-    optionals <<= (description in Ls, homepage in Ls, tags, docsUrl, licenses in Ls)((desc, homepage, tags, docs, lics) =>
+    description in lsync <<= (description in Runtime),
+    homepage in lsync <<= (homepage in Runtime),
+    optionals <<= (description in lsync, homepage in lsync, tags, docsUrl, licenses in lsync)((desc, homepage, tags, docs, lics) =>
        Optionals(desc, homepage, tags, docs, lics.map { case (name, url) => License(name, url.toString) })
     ),
-    externalResolvers in Ls := Seq(ScalaToolsReleases),
-    licenses in Ls <<= licenses in GlobalScope,
+    externalResolvers in lsync := Seq(ScalaToolsReleases),
+    licenses in lsync <<= licenses in GlobalScope,
     versionInfo <<=
       (organization,
        name,
        version,
        optionals,
-       externalResolvers in Ls,
+       externalResolvers in lsync,
        libraryDependencies,
        dependencyFilter,
        sbtPlugin,
@@ -334,8 +333,7 @@ object Plugin extends sbt.Plugin {
       }
     },
     (aggregate in search) := false,
-    (aggregate in find) := false
-  )) ++ Seq(
+    (aggregate in find) := false,
     commands ++= Seq(lsTry, lsInstall)
   )
 

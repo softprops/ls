@@ -50,7 +50,7 @@ $ ->
     ls.libraries pg, perPage+1, display(pg)
     return false
 
-  if window.location.hash.length
+  if window.location.hash.length and not window.location.hash in ['#publishing', '#finding', '#installing', '#uris']
     term = window.location.hash.substring(1)
     $("#q").val(term)
     ls.search term, 1, perPage+1, display(1)

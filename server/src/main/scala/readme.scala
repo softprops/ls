@@ -57,7 +57,7 @@ object Readme {
       <p>Then mix in the provided settings into your build definition</p>
       <pre><code>seq(lessSettings: _*)</code></pre>
       <p>When you are ready to sync your libraries build info with ls, do the following</p>
-      <pre><code>sbt> ls:write-version</code></pre>
+      <pre><code>sbt> ls-write-version</code></pre>
       <p>Then add or edit the generated file as you wish before commiting to git and pushing to your Github remote</p>
       <p>That's it. Go ahead and start working on the next version now.</p>
     </div>
@@ -66,12 +66,12 @@ object Readme {
       <h1><a href="#finding">Thumbing through</a></h1>
       <p>There are lot of libraries out there, but they are not that easy to find as they could be. First off, need to know the name of the library then you need to rummage though its documentation to find information on versions an installation notes</p>
       <p>ls aims to make this as simple as it possibly can be</p>
-      <pre><code>sbt> ls:find unfiltered</code></pre>
+      <pre><code>sbt> ls-find unfiltered</code></pre>
       <p>This will find any published library named unfiltered, listing recent versions and a library description</p>
       <p>What if you are looking for a specific version?</p>
-      <pre><code>sbt> ls:find unfiltered@0.5.1</code></pre>
+      <pre><code>sbt> ls-find unfiltered@0.5.1</code></pre>
       <p>What if you don't know what a libraries name is? Try searcing by tags</p>
-      <pre><code>sbt> ls:search web netty</code></pre>
+      <pre><code>sbt> ls-search web netty</code></pre>
     </div>
 
     <div id="installing">
