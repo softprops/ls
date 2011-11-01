@@ -67,18 +67,18 @@ object Templates {
       <div class="section install">
         <h3>Install</h3>
         <div>
-         { installInfo(ModuleID(l.organization, l.name, v.version), v.resolvers, v.scala_versions, l.sbt) }
+         { installInfo(ModuleID(l.organization, l.name, v.version), v.resolvers, v.scalas, l.sbt) }
         </div>
       </div>
       <div class="section scala-versions">
         <h3>Published for</h3><p>scala <span>{
-          <ul>{ v.scala_versions.map(sv => <li>{ sv }</li>) }</ul>
+          <ul>{ v.scalas.map(sv => <li>{ sv }</li>) }</ul>
         }</span></p>
       </div>
       <div class="section library-dependencies">
         <h3>Depends on</h3><span>{
-          if(v.library_dependencies.isEmpty) "nothing"
-          else <ul>{ v.library_dependencies.map(dep) }</ul>
+          if(v.dependencies.isEmpty) "nothing"
+          else <ul>{ v.dependencies.map(dep) }</ul>
         }</span>
       </div>
     </div>

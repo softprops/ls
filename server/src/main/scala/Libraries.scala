@@ -2,7 +2,7 @@ package ls
 
 import com.mongodb.casbah.Imports._
 
-object Conversions {
+object Conversions extends Logged {
   import com.mongodb.casbah.commons.Imports.ObjectId
   import com.mongodb.casbah.commons.{MongoDBObject => Obj, MongoDBList => ObjList}
   import com.mongodb.casbah.{MongoCollection}
@@ -99,10 +99,10 @@ object Conversions {
             "version" -> l.version,
             "docs" -> l.docs,
             "resolvers" -> l.resolvers,
-            "library_dependencies" ->
-              l.library_dependencies.map(libraryDepToDbObject),
+            "dependencies" ->
+              l.dependencies.map(libraryDepToDbObject),
             "licenses" -> l.licenses.map(licenseToDbObject),
-            "scala_versions" -> l.scala_versions
+            "scalas" -> l.scalas
           ))
       )
 
@@ -112,10 +112,10 @@ object Conversions {
         "version" -> v.version,
         "docs" -> v.docs,
         "resolvers" -> v.resolvers,
-        "library_dependencies" ->
-          v.library_dependencies.map(libraryDepToDbObject),
+        "dependencies" ->
+          v.dependencies.map(libraryDepToDbObject),
           "licenses" -> v.licenses.map(licenseToDbObject),
-          "scala_versions" -> v.scala_versions
+          "scalas" -> v.scalas
       )
     }
 
@@ -139,23 +139,27 @@ object Conversions {
     License(o.getAs[String]("name").get,
      o.getAs[String]("url").get)
 
-  private def dbObjectToVersion(m:Obj) = Version(
+  private def dbObjectToVersion(m:Obj) = try { Version(
     m.getAs[String]("version").get,
     m.getAs[String]("docs").get,
     wrapDBList(m.getAs[BasicDBList]("resolvers").get)
       .iterator.map(_.toString).toSeq,
-    wrapDBList(m.getAs[BasicDBList]("library_dependencies").get)
+    wrapDBList(m.getAs[BasicDBList]("dependencies").get)
       .iterator.map(l => moduleId(wrapDBObj(l.asInstanceOf[DBObject]))).toSeq,
-    wrapDBList(m.getAs[BasicDBList]("scala_versions").get)
+    wrapDBList(m.getAs[BasicDBList]("scalas").get)
       .iterator.map(_.toString).toSeq,
     m.getAs[BasicDBList]("licenses") match {
       case Some(dbl) =>
         wrapDBList(dbl).iterator.map(l => license(l.asInstanceOf[DBObject])).toSeq
       case _ => Seq()
     }
-  )
+  ) } catch {
+    case e =>
+      log.error("failed to parse %s" format m)
+      throw e
+  }
 
-  implicit val dbObjectToLibraryVersions: Obj => LibraryVersions = (m) => LibraryVersions(
+  implicit val dbObjectToLibraryVersions: Obj => LibraryVersions = (m) => try { LibraryVersions(
     m.getAs[String]("organization").get,
     m.getAs[String]("name").get,
     m.getAs[String]("description").get,
@@ -176,7 +180,13 @@ object Conversions {
               ).toSeq)
       case _ => None
     }
-  )
+  ) } catch {
+    case e =>
+      log.error("failed to parse %s" format m)
+      throw e
+  }
+
+
 
   implicit val mc2lv: MongoCollection => Iterable[LibraryVersions] = 
     (m) => for(l <- m) yield dbObjectToLibraryVersions(l)
@@ -313,8 +323,8 @@ object Libraries extends Logged {
           if(contained.isEmpty) {
             val appended = (Version(
               l.version,l.docs,
-              l.resolvers, l.library_dependencies,
-              l.scala_versions,
+              l.resolvers, l.dependencies,
+              l.scalas,
               l.licenses
             ) +: versions).sorted
             val updating = libraryVersionsToDbObject(current.copy(
@@ -336,8 +346,8 @@ object Libraries extends Logged {
             log.info("already contained version %s, need to merge" format l.version)
             val merged = (contained(0).copy(
               version = l.version,docs = l.docs,
-              resolvers = l.resolvers, library_dependencies = l.library_dependencies,
-              scala_versions = l.scala_versions
+              resolvers = l.resolvers, dependencies = l.dependencies,
+              scalas = l.scalas
             ) +: notcontained).sorted
             log.info("updating merged %s" format merged)
             val updated = libraryVersionsToDbObject(current.copy(

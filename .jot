@@ -1,0 +1,1 @@
+heroku runs `sbt clean compile stage`

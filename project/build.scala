@@ -5,7 +5,7 @@ object Build extends sbt.Build {
   import coffeescript.CoffeeScript
   import CoffeeScript._
   import less.Plugin._
-//  import heroic.Plugin._
+  //import heroic.Plugin._
 
 
   object HeroShim {
@@ -87,8 +87,12 @@ object Build extends sbt.Build {
     version := "0.1.0-SNAPSHOT"
   )
 
+  lazy val root = Project("ls", file("."), settings = buildSettings ++ Seq(HeroShim.stage in Compile := {})) aggregate(
+    svr, plugin
+  )
+
   lazy val lib = Project("library", file("library"),
-                       settings = buildSettings ++ Seq(name := "ls") ++ HeroShim.shimNoopSettings)
+                       settings = buildSettings ++ Seq(name := "ls"))
 
 
   lazy val svr = Project("server", file("server"),
@@ -117,12 +121,12 @@ object Build extends sbt.Build {
                               "net.databinder" %% "dispatch-http" % "0.8.5"
                             ),
                             resolvers += Resolvers.coda
-                          ) ++ HeroShim.shimNoopSettings) dependsOn(lib)
+                          )) dependsOn(lib)
 
-  lazy val tools = Project("ls-tools", file("tools"),
+  /*lazy val tools = Project("ls-tools", file("tools"),
                          settings = buildSettings ++ Seq(
                            libraryDependencies += "com.mongodb.casbah" %% "casbah" % "2.1.5-1",
                            sbtPlugin := true
-                         ) ++ HeroShim.shimNoopSettings) dependsOn(lib)
+                         )) dependsOn(lib)*/
 
 }

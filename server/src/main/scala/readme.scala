@@ -4,21 +4,21 @@ object Readme {
   val body = 
     <div id="read">
       <div id="publishing">
-      <h1><a href="/#publishing">publishing</a></h1>
-      <h2>ls makes two assumptions about your Scala libraries</h2>
-      <p>
-        <ul>
-          <li>1) Your library source is hosted on <a href="https://github.com">Github</a></li>
-          <li>2) You build your projects with <a href="https://github.com/harrah/xsbt/wiki" target="_blank">sbt</a>*</li>
-        </ul>
-        * 2 is not required, but highly recommended.
-      </p>
-      <p>
-        ls synchronizes your library's build information with a library version description file hosted on github, through a process called <code>lsyncing</code>. Lsyncing this information from sources publicly hosted on github means there is no need for authentication with ls's service. The author's commit access to the library implies their afflication with a given library.
+        <h1><a href="/#publishing">publishing</a></h1>
+        <h2>ls makes two assumptions about your Scala libraries</h2>
+        <p>
+          <ul>
+            <li>1) Your library source is hosted on <a href="https://github.com">Github</a></li>
+            <li>2) You build your projects with <a href="https://github.com/harrah/xsbt/wiki" target="_blank">sbt</a>*</li>
+          </ul>
+          * 2 is not required, but highly recommended.
+        </p>
+        <p>
+          ls captures your library's build information and exposes it for others to easily find, through a process called <code>lsyncing</code>. Lsyncing synchonizes build information publicly hosted on Github. Because only priviledged parties have commit access to these repositories, there is no need to authenticate with ls.
       </p>
       <h2 id="lsync-spec">Lsync specification</h2>
       <p>
-        ls stores semi-structured information about your library's versions by capturing a the contents of a json encoded file for each version of your library, tucking it away for later retrieval by others. The following is a description of the format that ls uses to capture this information.
+        ls stores semi-structured information about your library's in a json encoded file for each version of your library, tucking it safely away for later perusal by others. The following is a description of the format that ls uses to capture this information.
       <pre><code>{{
  <span class="key">"organization"</span>:"org.yourdomain",             <span class="comment"># your mvn/ivy organization identifier</span>
  <span class="key">"name"</span>:"my-awesome-library",                 <span class="comment"># the name of your awesome library</span>
@@ -32,7 +32,7 @@ object Readme {
    "url":"https://yourdomain.org/awesome-library/LICENSE"
   }}],
  <span class="key">"resolvers"</span>: ["http://repo.yourdomain.org/"], <span class="comment"># when can others find your library</span>
- <span class="key">"library_dependencies"</span>: [{{                    <span class="comment"># what does your library depend on</span>
+ <span class="key">"dependencies"</span>: [{{                           <span class="comment"># what does your library depend on</span>
    "organization":"org.otherdomain",
    "name": "my-awesome-dependency",
    "version": "0.1.0"
@@ -48,46 +48,47 @@ object Readme {
   -F="user=your-gh-user"
   -F="repo=your-gh-repo"
   -F="version=vesrion-to-sync"</code></pre>
-     ls will then recursively extract any files in the <code>github.com/your-gh-user/your-gh-repo</code> repository for files matching <code>src/main/ls/version-to-sync.json</code> and capture the above information.
+     This will tell ls recursively extract any files in the <code>github.com/your-gh-user/your-gh-repo</code> repository for files matching <code>src/main/ls/version-to-sync.json</code> and capture the above information.
       </p>
-      <h2 id="plugin">Sbt plugin</h2>
-      <p>The spec outlined above is a lot of information to author by hand. To make things simpler, just use the sbt plugin, <a href="/softprops/ls/#ls-sbt" target="_blank">ls-sbt</a> which will generate this for you. The purpose of the plugin is three-fold</p>
+      <p>No wants you to hand copy that for every library you write. That's what plugins are for.</p>
+      <h3>ls-sbt plugin</h3>
+      <p>To install a convenient ls client add the following to your projects, plugin definition</p>
+      <pre><code>addSbtPlugin("me.lessis" % "ls-sbt" % "0.1.0")</code></pre>
+      <p>Then mix in the provided settings into your build definition</p>
+      <pre><code>seq(lessSettings: _*)</code></pre>
+      <p>When you are ready to sync your libraries build info with ls, do the following</p>
+      <pre><code>sbt> ls:write-version</code></pre>
+      <p>Then add or edit the generated file as you wish before commiting to git and pushing to your Github remote</p>
+      <p>That's it. Go ahead and start working on the next version now.</p>
+    </div>
+
+    <div id="finding">
+      <h1><a href="#finding">Thumbing through</a></h1>
+      <p>There are lot of libraries out there, but they are not that easy to find as they could be. First off, need to know the name of the library then you need to rummage though its documentation to find information on versions an installation notes</p>
+      <p>ls aims to make this as simple as it possibly can be</p>
+      <pre><code>sbt> ls:find unfiltered</code></pre>
+      <p>This will find any published library named unfiltered, listing recent versions and a library description</p>
+      <p>What if you are looking for a specific version?</p>
+      <pre><code>sbt> ls:find unfiltered@0.5.1</code></pre>
+      <p>What if you don't know what a libraries name is? Try searcing by tags</p>
+      <pre><code>sbt> ls:search web netty</code></pre>
+    </div>
+
+    <div id="installing">
+       <h1><a href="installing">Checking the fit</a></h1>
+       <p>Once you find the library you are looking for you have a few options. You can hand edit a configuration file, paste in the info you had to previous search for or you could do</p>
+       <pre><code>sbt> ls-try unfiltered</code></pre>
+       <p>This will temporarily add the latest version of unfiltered to your library chain. Try `console-quick` to play with the library in the repl. If you don't like it you can always remove it with <code>search clear</code> or reloading your project. If you do find the library that fits you need its just as easy to install it
+       </p>
+       <pre><code>sbt> ls-install unfiltered</code></pre>
+       <p>The same syntax for specifying a specific version applies</p>
+       <pre><code>sbt> ls-install unfiltered@0.5.1</code></pre>
+    </div>
+    <div id="uris">
+      <h1><a href="#uris">You or I</a></h1>
+      <p>Libraries are just references to uris in ls. More specifically a Github repository, a library name, and version.</p>
+      <pre><code>sbt> ls-find library@0.5.0 user/repo</code></pre>
       <p>
-        <ul>
-          <li>1) To make it easy to lsync your scala library's version info</li>
-          <li>2) To make it easy to find scala libraries</li>
-          <li>3) To make it easy to install scala libraries</li>
-        </ul>
-      </p>
-      <p>
-       To install the plugin just add the following to your <code>plugins.sbt</code> file.
-       <pre><code>addSbtPlugin("me.lessis" %% "ls-sbt" % "0.1.0")</code></pre>
-      </p>
-      <h2>Lsync'ing from sbt</h2>
-      <p>
-        From any project, just type <code>ls:write-version</code> and the plugin will generate a new version.json file for your library's current version.
-        When you are ready to publish your library's version information, commit and push your version info file to Github then, from sbt, type
-        <pre><code>sbt> ls:lsync</code></pre>
-       If all goes well, you will then be able to find your library on ls.implicit.ly.
-      </p>
-      <h2>Finding libraries from sbt</h2>
-      <p>
-        You can find libraries by project or by keywords from sbt....
-      </p>
-      <h2>Installing scala libraries from sbt</h2>
-      <p>
-        Sbt provides a means of declarativley defining <code>library dependencies</code> setting but requires you know a lot of information up front. ls can make that workflow even simplier.
-        ls provides functionality for both <code>trying</code> and <code>installing</code> scala libraries.
-      </p>
-      <p>
-        Once you've found a library you want to install, simply type
-        <pre><code>sbt> ls-try unfiltered-netty-server</code></pre>
-        This will temporarily install a published library until you restart sbt. To persist this installation just type
-        <pre><code>sbt> ls-install unfiltered-netty-server</code></pre>
-      </p>
-      <p>
-        Libraries are just references to uris in ls. To install a specific version type
-        <pre><code>sbt> ls-install unfiltered-netty-server@0.5.0</code></pre>
         By default <code>try</code> and <code>install</code> will always use the latest version published.
       </p>
       <p>

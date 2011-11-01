@@ -9,8 +9,8 @@ case class License(name: String, url: String)
 case class Library(organization: String, name: String, version: String,
                    description: String, site: String, tags: Seq[String],
                    docs: String, resolvers: Seq[String],
-                   library_dependencies: Seq[ModuleID],
-                   scala_versions: Seq[String],
+                   dependencies: Seq[ModuleID],
+                   scalas: Seq[String],
                    licenses: Seq[License],
                    sbt: Boolean = false,
                    ghuser: Option[String] = None, ghrepo: Option[String] = None,
@@ -19,8 +19,8 @@ case class Library(organization: String, name: String, version: String,
 // internal representation
 case class Version(version: String, docs: String,
                    resolvers: Seq[String],
-                   library_dependencies: Seq[ModuleID],
-                   scala_versions: Seq[String],
+                   dependencies: Seq[ModuleID],
+                   scalas: Seq[String],
                    licenses: Seq[License])
 
 case class LibraryVersions(organization: String, name: String,

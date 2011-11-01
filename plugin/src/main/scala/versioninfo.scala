@@ -60,8 +60,8 @@ case class VersionInfo(
     | "docs":"%s",
     | "licenses": %s,
     | "resolvers": %s,
-    | "library_dependencies": %s,
-    | "scala_versions": %s,
+    | "dependencies": %s,
+    | "scalas": %s,
     | "sbt": %s
     |}""".stripMargin.format(
       org, name, version,
