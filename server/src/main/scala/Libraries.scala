@@ -121,8 +121,15 @@ object Conversions extends Logged {
 
   implicit val versionOrdering: Ordering[Version] = Ordering.by((_:Version).version).reverse
 
-  private def innerList(m: Obj)(objName: String, lname: String) =
-    wrapDBList(wrapDBObj(m.getAs[BasicDBList](objName).get).getAs[BasicDBList](lname).get)
+  //private def innerList(m: Obj)(objName: String, lname: String) =
+  //  wrapDBList(wrapDBObj(m.getAs[BasicDBList](objName).get).getAs[BasicDBList](lname).get)
+
+  def first(m: Obj)(objName: String, prop: String): Option[String] =
+    wrapDBList(m.getAs[BasicDBList](objName).get).iterator match {
+      case it if(it hasNext) =>
+        it.next.asInstanceOf[DBObject].getAs[String](prop)
+      case _ => None
+    }
 
   private def moduleId(o: DBObject) =
     ModuleID(o.getAs[String]("organization").get,
@@ -265,6 +272,22 @@ object Libraries extends Logged {
       f(cct(
         c.find(query)
       ))
+    }
+
+  def latest[T, C](name: String, user: Option[String] = None,
+                   repo: Option[String] = None)
+                    (f: Iterable[C] => T)(implicit cct: CanConvertListTo[C]) =
+    libraries { c =>
+      log.info("geting latest version of %s (%s/%s)" format(name, user, repo))
+      val query = Obj("name" -> name) opt user.map(u =>
+        Obj("ghuser" -> u)
+      ) opt repo.map(r =>
+        Obj("ghrepo" -> r)
+      )
+      f(cct(c.find(
+        query,
+        Obj("_id" -> 0, "versions.version" -> 1)
+      )))
     }
 
   /** Find by name + version and optionally user and repo */

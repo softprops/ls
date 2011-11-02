@@ -31,6 +31,16 @@ object Api extends Logged {
       ResponseString(com.codahale.jerkson.Json.generate(libs))
     }
 
+  def asJsonVersion(v: Iterable[String]) =
+    v.iterator match {
+      case it if(it.hasNext) =>
+         JsonContent ~>
+          ResponseString(
+            """{"version":"%s"}""" format it.next
+          )
+      case _ => NotFound
+    }
+
   def unparsable: PartialFunction[Github.Error, Boolean] = {
     case Github.Unparsable => true
     case _ => false
@@ -97,9 +107,9 @@ object Api extends Logged {
   def libraries: Cycle.Intent[Any, Any] = {
     case GET(Path(Seg("api" :: "libraries" :: rest))) => Clock("libraries %s" format rest, log) {
       rest match {
-        case name :: Nil => // just the name (latest implied)
+        case name :: Nil =>
           Libraries(name)(asJson)
-        case name :: version :: Nil => // name with version 
+        case name :: version :: Nil =>
           Libraries(name, version = Some(version))(asJson)
         case name :: version :: user :: Nil =>
           Libraries(name, version = Some(version),
@@ -110,6 +120,27 @@ object Api extends Logged {
         case _ => NotFound
       }
     }
+  }
+
+  def latest: Cycle.Intent[Any, Any] = {
+    case GET(Path(Seg("api" :: "latest" :: lib :: Nil)) & Params(p)) =>
+      val expect = for {
+        user <- lookup("user") is optional[String, String]
+        repo <- lookup("repo") is optional[String, String]
+      } yield {
+        import com.mongodb.DBObject
+        import com.mongodb.casbah.Implicits._
+        Libraries.latest(lib, user.get, repo.get)(asJsonVersion)(
+          _.flatMap(Conversions.first(_)("versions", "version")).toList.headOption
+        )
+      }
+      Clock("latest %s %s" format(lib, p), log) {
+        expect(p) orFail { errors =>
+           BadRequest ~> ResponseString(
+             errors map { fail => fail.name + ":" + fail.error } mkString ","
+           )
+         }
+      }
   }
 
   /** Find libraries by keywords */

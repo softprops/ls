@@ -39,8 +39,10 @@ html, body, div, span, applet, object, iframe,html,body,div,span,applet,object,i
 
 .gradient(@start, @end) {
  filter: ~"progid:DXImageTransform.Microsoft.gradient(startColorstr='@start', endColorstr='@end')";
- background: -webkit-gradient(linear, left top, left bottom, from(@start), to(@end));
- background: -moz-linear-gradient(top,  @start,  @end);
+ background-image: -webkit-gradient(linear, left top, left bottom, from(@start), to(@end));
+ background-image: -moz-linear-gradient(top,  @start,  @end);
+ background-image: -o-linear-gradient(top, #7a7a7a, #272727);
+ background-image: linear-gradient(top, #7a7a7a, #272727);
 }
 
 .shadowed (@color: #D6F5FF, @x:0px, @inset:inset, @y: 0px, @blur: 3px) {
@@ -78,7 +80,6 @@ body {
   font-family: @default-font;
   font-size:18px;
   background:@background-color;
-  /*.gradient(#6690C4, @background-color);*/
   color: @default-color;
   line-height:1.5em;
   text-align:center;
@@ -283,6 +284,7 @@ pre {
   font-size:18px;
   background:#7A7A7A;
   background:rgba(0,0,0,.4);
+  .gradient(#272727, #383838);
   color:#fff;
   code {
     text-shadow:0 1px #333;
@@ -293,12 +295,11 @@ pre {
       color:@link-color;
     }
   }
-  padding:.25em;
+  padding:.25em .5em;
 }
 
 code {
   font-family: @fancy-code-font;
-  text-shadow:0 1px #fff;
   word-wrap:break-word;
 }
 
