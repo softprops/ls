@@ -5,24 +5,26 @@ import com.mongodb.MongoURI
 import java.net.URI
 
 object Store extends Logged {
-  def withDb[T](name: Option[String] = None)(f: MongoDB => T): T = {
+  // casbahs underlying java driver supports connection 
+  // pooling out of the box, we should only need one instance
+  // for entire app instance
+  // http://www.mongodb.org/display/DOCS/Java+Driver+Concurrency
+
+  lazy val db = {
     // todo: using the heroku specific config property was easy,
     //  make it elegant
     val uri = new URI(Props.get("MONGOLAB_URI"))
     try {
       val conn = MongoConnection(uri.getHost, uri.getPort)
-      val dbName = name match {
-        case Some(db) => db
-        case _ => uri.getPath.drop(1)
-      }
-      val db = Clock("connecting to %s %s" format(uri, dbName), log) {
-        conn(dbName)
+      val name = uri.getPath.drop(1)
+      val mongo = Clock("connecting to %s %s" format(uri, name), log) {
+        conn(name)
       }
       Clock("authenticating", log) {
         val Array(user, pass) = uri.getUserInfo.split(":")
-        db.authenticate(user, pass)
+        mongo.authenticate(user, pass)
+        mongo
       }
-      f(db)
     } catch {
       case e:java.io.IOException => log.error(
         "Error occured whilst connecting to mongo (%s): %s" format(
@@ -32,9 +34,5 @@ object Store extends Logged {
     }
   }
 
-  def collection[T](name: String, dbname: Option[String] = None)(
-    f: MongoCollection => T): T =
-      withDb(dbname) { db =>
-        f(db(name))
-      }
+  def collection[T](name: String)(f: MongoCollection => T): T = f(db(name))
 }
