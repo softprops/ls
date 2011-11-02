@@ -72,7 +72,7 @@ $ ->
       ls.libraries 1, perPage+1, display(1)
 
   $("#q").keyup (e) ->
-    typeTimeout = setTimeout(search, 700)
+    typeTimeout = setTimeout(search, 500)
 
   $("#q").keydown (e) ->
     clearTimeout(typeTimeout)
