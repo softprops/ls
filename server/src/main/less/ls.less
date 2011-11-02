@@ -13,6 +13,13 @@ html, body, div, span, applet, object, iframe,html,body,div,span,applet,object,i
 @container-width: 940px;
 @sel-color: darken(@default-color, 20%);
 
+
+.spin {
+  background-image: url(/img/spin.gif);
+  background-repeat:no-repeat;
+  background-position:center;
+}
+
 .centered {
   text-align:center;
 }
@@ -115,6 +122,7 @@ p {
     .centered;
   }
   #libraries {
+    min-height:300px;
     .none-found {
       text-align:center;
     }
@@ -128,6 +136,9 @@ p {
     }
     a:link span, a:visited span {
       color:@light-color;
+    }
+    a:link span.v, a:visited span.v {
+      color: darken(@light-color, 20%);
     }
   }
 }

@@ -15,10 +15,13 @@ object Store extends Logged {
         case Some(db) => db
         case _ => uri.getPath.drop(1)
       }
-      println("connecting to %s %s" format(uri, dbName))
-      val db = conn(dbName)
-      val Array(user, pass) = uri.getUserInfo.split(":")
-      db.authenticate(user, pass)
+      val db = Clock("connecting to %s %s" format(uri, dbName), log) {
+        conn(dbName)
+      }
+      Clock("authenticating", log) {
+        val Array(user, pass) = uri.getUserInfo.split(":")
+        db.authenticate(user, pass)
+      }
       f(db)
     } catch {
       case e:java.io.IOException => log.error(

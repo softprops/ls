@@ -292,6 +292,7 @@ object Libraries extends Logged {
     }
 
   // merge/update before simply appending to collection
+  // potential hammersmith candiate
   def save(libs: Seq[Library]) = libraries { col =>
     log.info("saving or updating %d libraries" format libs.size)
     libs.map { l =>

@@ -14,7 +14,7 @@ $ ->
   li = (l) ->
     "<li>
       <h3>
-        <a href='/#{l.ghuser}/#{l.ghrepo}\##{l.name}'>#{l.name}<span class='v'>@#{l.versions[0].version}</span></a>
+        <a href='/#{l.ghuser}/#{l.ghrepo}\##{l.name}'>#{l.name}<span class='at'>@</span><span class='v'>#{l.versions[0].version}</span></a>
       </h3>
       <div>#{l.description}</div>
      </li>"
@@ -23,8 +23,7 @@ $ ->
 
   display = (page) ->
     (libs) ->
-      # produce n lists of n elements
-      # god I <3 coffeescript
+      $("#libraries").removeClass("spin")
       if libs.length
         visible = libs.slice(0, perPage)
         [c, r] = [2, 3]
@@ -43,12 +42,13 @@ $ ->
           "<div class='none-found'>No published libraries found. You should start one.</div>"
           )
 
-
   $("a.page").live 'click', (e) ->
     e.preventDefault()
     pg = $(this).data().page
     ls.libraries pg, perPage+1, display(pg)
     return false
+
+  $("#libraries").addClass("spin")
 
   if window.location.hash.length and not window.location.hash in ['#publishing', '#finding', '#installing', '#uris']
     term = window.location.hash.substring(1)
@@ -65,8 +65,9 @@ $ ->
 
   search = () ->
     q = $.trim($("#q").val())
+    $("#libraries").empty().addClass("spin")
     if q.length > 2
-      ls.search q, 1, perPage+1, display
+      ls.search q, 1, perPage+1, display(1)
     else if q.length is 0
       ls.libraries 1, perPage+1, display(1)
 
