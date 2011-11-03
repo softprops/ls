@@ -50,7 +50,7 @@ $ ->
 
   $("#libraries").addClass("spin")
 
-  if window.location.hash.length and not window.location.hash in ['#publishing', '#finding', '#installing', '#uris']
+  if window.location.hash.length and window.location.hash not in ['#publishing', '#finding', '#installing', '#uris']
     term = window.location.hash.substring(1)
     $("#q").val(term)
     ls.search term, 1, perPage+1, display(1)
