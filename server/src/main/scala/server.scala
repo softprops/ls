@@ -5,7 +5,7 @@ import unfiltered._
 object Server {
   import unfiltered.response._
   def main(a: Array[String]):Unit = {
-    netty.Http(5000)
+    netty.Http(Props.int("PORT").getOrElse(5000))
       .resources(getClass().getResource("/www/"))
       .handler(netty.cycle.Planify {
         Browser.trapdoor
