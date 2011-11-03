@@ -16,7 +16,10 @@ abstract class Props(resource: String) {
   case class JProps(resource: String) extends FallbackProvider(Env) {
     lazy val props = {
       val p = new java.util.Properties()
-      p.load(getClass().getResourceAsStream(resource))
+      getClass().getResourceAsStream(resource) match {
+        case null => println("local resource %s not found. (it's okay fallback on env)" format resource)
+        case r => p.load(r)
+      }
       p
     }
 
