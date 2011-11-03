@@ -1,1 +1,3 @@
 heroku runs `sbt clean compile stage`
+
+add global plugin usage to ls-sbt docs. also start doc this stuff in a readme!
