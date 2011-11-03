@@ -325,13 +325,18 @@ object Plugin extends sbt.Plugin {
             )
             case kwords =>
               val cli = Client(host)
-              libraries(
-                inClassLoader(classOf[LibraryVersions]) {
-                  parse[Seq[LibraryVersions]](http(cli.search(kwords.toSeq) as_str))
-                },
-                out.log,
-                args:_*
-              )
+              try {
+                libraries(
+                  inClassLoader(classOf[LibraryVersions]) {
+                    parse[Seq[LibraryVersions]](http(cli.search(kwords.toSeq) as_str))
+                  },
+                  out.log,
+                  args:_*
+                )
+              } catch {
+                case StatusCode(404, msg) =>
+                  out.log.info("library not found for keywords %s" format kwords.mkString(", "))
+              }
           }
       }
     },
