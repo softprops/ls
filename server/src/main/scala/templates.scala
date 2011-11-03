@@ -150,7 +150,7 @@ object Templates {
     </div>
   )("index")()
 
-  def layout(body: xml.NodeSeq, title: String = "ls")(scripts: String*)(sheets: String*) = Html(
+  def layout(body: xml.NodeSeq, title: String = "ls. a scala card catalog")(scripts: String*)(sheets: String*) = Html(
    <html>
     <head>
       <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
@@ -166,7 +166,7 @@ object Templates {
          { body }
        </div>
         <div id="foot">
-          Published under Scala.
+          Published under Scala. For the community. &copy; <a href="http://github.com/softprops">softprops</a> 2011
           <div>
             <a href="#publishing">Publish your library</a> &bull; <a target="_blank" href="https://github.com/inbox/new?to=softprops">Contact your librarian</a>
           </div>

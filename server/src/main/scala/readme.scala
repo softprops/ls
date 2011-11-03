@@ -76,8 +76,8 @@ object Readme {
 
     <div id="finding">
       <h1><a href="#finding">Thumbing through</a></h1>
-      <p>There are lot of libraries out there, but they are not that easy to find as they could be. First off, need to know the name of the library then you need to rummage though its documentation to find information on versions an installation notes</p>
-      <p>ls aims to make this as simple as it possibly can be</p>
+      <p>There are lot of libraries out there, but they are not as easy to find as they could be. First of all, you need to know the name of the library, then you need to rummage though its documentation to find version information and installation notes</p>
+      <p>ls aims to make finding Scala libraries as simple as it possibly can be</p>
       <pre><code>sbt> ls-find unfiltered</code></pre>
       <p>This will find any ls-published library named unfiltered, listing recent versions with descriptions</p>
       <p>What if you are looking for a specific version?</p>
@@ -90,7 +90,7 @@ object Readme {
        <h1><a href="installing">Checking the fit</a></h1>
        <p>Once you find the library you are looking for you have a few options. You can hand edit a configuration file, paste in the info you had to previous search for or you could do</p>
        <pre><code>sbt> ls-try unfiltered</code></pre>
-       <p>This will temporarily add the latest version of unfiltered to your library chain. Try `console-quick` to play with the library in the repl. If you don't like it you can always remove it with <code>search clear</code> or reloading your project. If you do find the library that fits you need its just as easy to install it
+       <p>This will temporarily add the latest version of unfiltered to your library chain. Try <code>console-quick</code> to play with the library in the repl. If you don't like it you can always remove it with <code>search clear</code> or reloading your project. If you do find the library that fits you need its just as easy to install it
        </p>
        <pre><code>sbt> ls-install unfiltered</code></pre>
        <p>The same syntax for specifying a specific version applies</p>
