@@ -46,7 +46,7 @@ abstract class Props(resource: String) {
      case value => Some(value)
   }
 
-  def int(name: String) = apply(name).map(v => allCatch.opt{ v.toInt })
+  def int(name: String) = apply(name).map(v => v.toInt)
 }
 
 object Props extends Props("/ls.properties")
