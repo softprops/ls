@@ -34,7 +34,7 @@ object Plugin extends sbt.Plugin {
     val ghRepo = SettingKey[Option[String]](key("gh-repo"), "Github repository name")
 
     // api
-    val lsHost = SettingKey[String](key("host"), "Host ls server")
+    val host = SettingKey[String](key("host"), "Host ls server")
     val find = InputKey[Unit](key("find"),
                               "Search for libraries based on <user>, <user> <repo>, or <user> <repo> <version>")
     val search = InputKey[Unit](key("search"),
@@ -50,12 +50,15 @@ object Plugin extends sbt.Plugin {
       case cf:ConnectionRefused => sys.error(
         "ls is currently not available to take your call"
       )
+      case uh:java.net.UnknownHostException => sys.error(
+        "You may not know your host as well as you think. Your http client doesnt know %s" format uh.getMessage
+      )
     }
     finally { h.shutdown() }
   }
 
   private def lsyncTask: Initialize[Task[Unit]] =
-    (streams, ghUser, ghRepo, version in lsync, lsHost) map {
+    (streams, ghUser, ghRepo, version in lsync, host in lsync) map {
       (out, maybeUser, maybeRepo, vers, host) =>
         (maybeUser, maybeRepo) match {
           case (Some(user), Some(repo)) =>
@@ -261,11 +264,11 @@ object Plugin extends sbt.Plugin {
       case Some((_, repo)) => Some(repo)
       case _ => None
     }),
-    lsHost := "http://ls.implicit.ly",
+    (host in lsync) := "http://ls.implicit.ly",
     lsync <<= lsyncTask,
     (aggregate in lsync) := false,
     find <<= inputTask { (argsTask: TaskKey[Seq[String]]) =>
-      (argsTask, streams, lsHost) map {
+      (argsTask, streams, host in lsync) map {
         case (args, out, host) =>
           val cli = Client(host)
           // todo: define query dsl
@@ -314,7 +317,7 @@ object Plugin extends sbt.Plugin {
       }
     },
     search <<= inputTask { (argsTask: TaskKey[Seq[String]]) =>
-      (argsTask, streams, lsHost, state) map {
+      (argsTask, streams, host in lsync, state) map {
         case (args, out, host, state) =>
           args match {
             case Seq() => sys.error(
