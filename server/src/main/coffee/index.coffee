@@ -21,7 +21,7 @@ $ ->
 
   perPage = 9
 
-  display = (page) ->
+  display = (page, term) ->
     (libs) ->
       $("#libraries").removeClass("spin")
       if libs.length
@@ -38,8 +38,9 @@ $ ->
         rows.push("</div>")
         $("#libraries").html(rows.join(''))
       else
+        why = if term then "matching #{term}" else "found"
         $("#libraries").html(
-          "<div class='none-found'>No published libraries found. You should start one.</div>"
+          "<div class='none-found'>No published libraries #{why}. Maybe you should start one.</div>"
           )
 
   $("a.page").live 'click', (e) ->
@@ -53,7 +54,7 @@ $ ->
   if window.location.hash.length and window.location.hash not in ['#publishing', '#finding', '#installing', '#uris']
     term = window.location.hash.substring(1)
     $("#q").val(term)
-    ls.search term, 1, perPage+1, display(1)
+    ls.search term, 1, perPage+1, display(1, term)
   else
     ls.libraries 1, perPage+1, display(1)
 
@@ -67,7 +68,7 @@ $ ->
     q = $.trim($("#q").val())
     $("#libraries").empty().addClass("spin")
     if q.length > 2
-      ls.search q, 1, perPage+1, display(1)
+      ls.search q, 1, perPage+1, display(1, q)
     else if q.length is 0
       ls.libraries 1, perPage+1, display(1)
 

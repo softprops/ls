@@ -47,7 +47,7 @@ object Readme {
    "name": "my-awesome-dependency",
    "version": "0.1.0"
   }}],
- <span class="comment"># cross-scala compilations</span>
+ <span class="comment"># cross-binary dialects</span>
  <span class="key">"scalas"</span>: [
    "2.8.0","2.8.1","2.8.2",
    "2.9.0","2.9.0-1","2.9.1"
@@ -64,33 +64,33 @@ object Readme {
       </p>
       <p>No wants you to hand copy that for every library you write. That's what plugins are for.</p>
       <h3>ls-sbt plugin</h3>
-      <p>To install a convenient ls client, add the following to your projects, plugin definition</p>
+      <p>To install a convenient ls client, add the following to your projects plugin definition</p>
       <pre><code>addSbtPlugin("me.lessis" % "ls-sbt" % "0.1.0")</code></pre>
       <p>Then mix in the provided settings into your build definition</p>
-      <pre><code>seq(lessSettings: _*)</code></pre>
-      <p>Then add or edit the generated file as you wish before commiting to git and pushing to your Github remote</p>
+      <pre><code>seq(lsSettings: _*)</code></pre>
+      <p>Add or edit the generated file under <code>src/main/ls/:version.json</code> to fit your liking before commiting to git and pushing to your Github remote</p>
       <p>When you are ready to sync your libraries build info with ls, do the following</p>
       <pre><code>sbt> ls-write-version</code></pre>
-      <p>That's it. Go ahead and start working on the next version now.</p>
+      <p>That's it! Free free to go ahead and start banging out the next awesome version of your library now.</p>
     </div>
 
     <div id="finding">
       <h1><a href="#finding">Thumbing through</a></h1>
-      <p>There are lot of libraries out there, but they are not as easy to find as they could be. First of all, you need to know the name of the library, then you need to rummage though its documentation to find version information and installation notes</p>
-      <p>ls aims to make finding Scala libraries as simple as it possibly can be</p>
+      <p>There are lot of libraries out there, but they are not as easy to find as they could be. For starters, you need to know the name of the library, then you need to rummage though its (hopefully well-documented) documentation to find version information and installation notes.</p>
+      <p>ls aims to make finding Scala libraries as simple as it possibly can be by adding some vocabulary to your sbt shell</p>
       <pre><code>sbt> ls-find unfiltered</code></pre>
-      <p>This will find any ls-published library named unfiltered, listing recent versions with descriptions</p>
-      <p>What if you are looking for a specific version?</p>
+      <p>This command will find any ls-published library named <code>unfiltered</code>, listing recent versions with descriptions</p>
+      <p>What if you are looking for a specific version? Just add <code>@:version</code> to your query</p>
       <pre><code>sbt> ls-find unfiltered@0.5.1</code></pre>
-      <p>What if you don't know what a libraries name is? Try searcing by tags</p>
+      <p>What if you don't know what a libraries name is at all? Try searcing by tags and see what pops up.</p>
       <pre><code>sbt> ls-search web netty</code></pre>
     </div>
 
     <div id="installing">
        <h1><a href="installing">Checking the fit</a></h1>
-       <p>Once you find the library you are looking for you have a few options. You can hand edit a configuration file, paste in the info you had to previous search for or you could do</p>
+       <p>Once you find the library you are looking for, you have a few options. You can hand edit a configuration file, paste in the info you had to previous search for or you could do</p>
        <pre><code>sbt> ls-try unfiltered</code></pre>
-       <p>This will temporarily add the latest version of unfiltered to your library chain. Try <code>console-quick</code> to play with the library in the repl. If you don't like it you can always remove it with <code>search clear</code> or reloading your project. If you do find the library that fits you need its just as easy to install it
+       <p>This will temporarily add the latest version of unfiltered to your library chain. Try <code>console-quick</code> to play with the library in the repl. If you don't like it you can always remove it with the <code>session clear</code> command or by reloading your project. If you do find the library that fits you need its just as easy to install it
        </p>
        <pre><code>sbt> ls-install unfiltered</code></pre>
        <p>The same syntax for specifying a specific version applies</p>
@@ -98,13 +98,13 @@ object Readme {
     </div>
     <div id="uris">
       <h1><a href="#uris">You or I</a></h1>
-      <p>Because of the open nature of ls, a forked respository can coexist with another of the same name. Libraries is ls are just references to <code>uris</code>. More specifically a uri for Github repository, a library name, and version.</p>
+      <p>Because of the open nature of Github, a forked respository can coexist with another of the same name under a different user's account. Libraries is ls are just references to <code>uris</code>. More specifically a uri for Github repository, a library name, and version.</p>
       <pre><code>sbt> ls-find library@0.5.0 user/repo</code></pre>
       <p>
         By default <code>try</code> and <code>install</code> will always use the latest version of a library by name using an inferred uri.
       </p>
       <p>
-        It is not recommended to lsync version information across repos but in the case a library author has, ls will prompt you for the repo you wish to use.
+        It is not recommended to lsync version information across repos. Doing so may decrease the likelyhood of your users finding the right library. In the case a library author has lsync'd across repositories, ls will prompt you for the repo you wish to use.
       </p>
     </div>
   </div>
