@@ -44,7 +44,7 @@ object Plugin extends sbt.Plugin {
   }
 
   private def http[T](hand: Handler[T]): T = {
-    val h = new Http
+    val h = new Http with NoLogging
     try { h(hand) }
     catch {
       case cf:ConnectionRefused => sys.error(
