@@ -14,13 +14,13 @@ object Readme {
           * 2 is not required, but highly recommended.
         </p>
         <p>
-          ls captures your library's build information through a process called <code>lsyncing</code>. Lsyncing synchonizes build information publicly hosted on Github. Because only priviledged parties have commit access to these repositories, there is no need to authenticate with ls.
+          ls learns about your library through a process called <code>lsyncing</code>, which synchronizes with build information publicly hosted on Github. Because only privileged parties may commit to these repositories, ls is not concerned with who is requesting an lsync—that is, authentication—but with the controlled project metadata on Github.
       </p>
       <h2 id="lsync-spec">Lsync spec</h2>
       <p>
         ls stores semi-structured information about your library's build in a json encoded file for each version of your library. The following is a description of the format that ls uses to capture this information.
       <pre><code>{{
- <span class="comment"># a mvn/ivy organization identifier</span>
+ <span class="comment"># a maven/ivy organization identifier</span>
  <span class="key">"organization"</span>:"org.yourdomain",
  <span class="comment"># name of your awesome library</span>
  <span class="key">"name"</span>:"my-awesome-library",
@@ -60,7 +60,7 @@ object Readme {
   -F="<span class="key">user</span>=your-gh-user"
   -F="<span class="key">repo</span>=your-gh-repo"
   -F="<span class="key">version</span>=version-to-sync"</code></pre>
-     This will tell ls recursively extract any files in the <code>github.com/your-gh-user/your-gh-repo</code> repository for files matching <code>src/main/ls/version-to-sync.json</code> and capture the above information.
+     This will tell ls to recursively extract any files in the <code>github.com/your-gh-user/your-gh-repo</code> repository for files matching <code>src/main/ls/version-to-sync.json</code> and capture the above information.
       </p>
       <p>No wants you to hand copy that for every library you write. That's what plugins are for.</p>
       <h3>ls-sbt plugin</h3>
@@ -90,7 +90,7 @@ object Readme {
        <h1><a href="installing">Checking the fit</a></h1>
        <p>Once you find the library you are looking for, you have a few options. You can hand edit a configuration file, paste in the info you had to previous search for or you could do</p>
        <pre><code>sbt> ls-try unfiltered</code></pre>
-       <p>This will temporarily add the latest version of unfiltered to your library chain. Try <code>console-quick</code> to play with the library in the repl. If you don't like it you can always remove it with the <code>session clear</code> command or by reloading your project. If you do find the library that fits you need its just as easy to install it
+       <p>This will temporarily add the latest version of unfiltered to your library chain. Try <code>console-quick</code> to play with the library in the repl. If you don't like it you can always remove it with the <code>session clear</code> command or by reloading your project. If you do find the library that fits you need, it's just as easy to install it.
        </p>
        <pre><code>sbt> ls-install unfiltered</code></pre>
        <p>The same syntax for specifying a specific version applies</p>
@@ -98,13 +98,13 @@ object Readme {
     </div>
     <div id="uris">
       <h1><a href="#uris">You or I</a></h1>
-      <p>Because of the open nature of Github, a forked respository can coexist with another of the same name under a different user's account. Libraries is ls are just references to <code>uris</code>. More specifically a uri for Github repository, a library name, and version.</p>
+      <p>Because of the open nature of Github, a forked repository can coexist with another of the same name under a different user's account. Libraries is ls are just references to <code>uris</code>. More specifically a uri for Github repository, a library name, and version.</p>
       <pre><code>sbt> ls-find library@0.5.0 user/repo</code></pre>
       <p>
         By default <code>try</code> and <code>install</code> will always use the latest version of a library by name using an inferred uri.
       </p>
       <p>
-        It is not recommended to lsync version information across repos. Doing so may decrease the likelyhood of your users finding the right library. In the case a library author has lsync'd across repositories, ls will prompt you for the repo you wish to use.
+        It is not recommended to lsync version information across repos. Doing so may decrease the likelihood of your users finding the right library. In the case a library author has lsync'd across repositories, ls will prompt you for the repo you wish to use.
       </p>
     </div>
   </div>
