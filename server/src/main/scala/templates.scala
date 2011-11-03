@@ -141,7 +141,7 @@ object Templates {
       <div>
         <h1><a href="/"><span class="ls">ls</span><span class="dot">.</span>implicit.ly</a></h1>
         <h2>
-          a card calalog of sorts for
+          a card calalog for
             <a href="https://scala-lang.org" target="_blank">scala</a> libraries
         </h2>
       </div>
