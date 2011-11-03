@@ -326,7 +326,7 @@ object Libraries extends Logged {
       )
       log.info("create or update selection query %s" format query)
 
-      apply(l.name, l.ghuser, l.ghrepo){ (currentVersions: Iterable[LibraryVersions]) =>
+      apply(l.name, user = l.ghuser, repo = l.ghrepo){ (currentVersions: Iterable[LibraryVersions]) =>
         if(currentVersions.isEmpty) try { col.findAndModify(
           query, // query
           Obj(), // fields
@@ -342,7 +342,6 @@ object Libraries extends Logged {
           // this could get ugly!
           val current = currentVersions.head
           val versions = current.versions.toSeq
-          log.info("current versions %s" format versions)
           val (contained, notcontained) = versions.partition(_.version == l.version)
           if(contained.isEmpty) {
             val appended = (Version(
@@ -354,7 +353,6 @@ object Libraries extends Logged {
             val updating = libraryVersionsToDbObject(current.copy(
               versions = appended
             ))
-            log.info("append updating %s" format updating)
             // append version
             col.findAndModify(
               query,
@@ -367,13 +365,11 @@ object Libraries extends Logged {
             )
           } else {
             // update version
-            log.info("already contained version %s, need to merge" format l.version)
             val merged = (contained(0).copy(
               version = l.version,docs = l.docs,
               resolvers = l.resolvers, dependencies = l.dependencies,
               scalas = l.scalas
             ) +: notcontained).sorted
-            log.info("updating merged %s" format merged)
             val updated = libraryVersionsToDbObject(current.copy(
               versions = merged
             ))
