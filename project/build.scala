@@ -16,9 +16,9 @@ object Build extends sbt.Build {
     version := "0.1.0-SNAPSHOT"
   )
 
-  lazy val root = Project("ls", file("."), settings = buildSettings ++ Seq(
+  lazy val root = Project("root", file("."), settings = buildSettings ++ Seq(
     HeroShim.stage in Compile := {})) aggregate(
-    svr, plugin
+    svr, plugin, lib
   )
 
   lazy val lib = Project("library", file("library"),
@@ -33,7 +33,7 @@ object Build extends sbt.Build {
                              "net.databinder" %% "dispatch-http" % "0.8.5",
                              "net.databinder" %% "unfiltered-netty-server" % "0.5.0",
                              "com.mongodb.casbah" %% "casbah" % "2.1.5-1"
-                           )) ++ coffeeSettings ++ lessSettings ++ HeroShim.shimSettings ++
+                           )) ++ coffeeSettings ++ lessSettings ++ HeroShim.shimSettings ++ /* heroicSettings ++ */
                           Seq(
                            (targetDirectory in Coffee) <<= (resourceManaged in Compile) { _ / "www" / "js" },
                            (resourceManaged in (Compile, LessKeys.less)) <<= (resourceManaged in Compile) { _ / "www" / "css" },
