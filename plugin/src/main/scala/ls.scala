@@ -393,12 +393,7 @@ object Plugin extends sbt.Plugin {
     val GHRemote = """^git@github.com[:](\S+)/(\S+)[.]git$""".r
      def unapply(line: String) = line.split("""\s+""") match {
        case Array(_, GHRemote(user, repo), _) => Some(user, repo)
-       case a => /*println(
-         "ls requires a github git remote: Your current remotes are: \n\t%s" format (
-             a.toList.mkString("\n\t")
-         )
-       )*/
-       None
+       case _ => None
      } 
    }
 
