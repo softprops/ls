@@ -402,9 +402,12 @@ object Plugin extends sbt.Plugin {
      } 
    }
 
-  def maybeRepo: Option[(String, String)] = {
-    (Process("git remote -v") !!).split("""\n""").collectFirst {
-      case GhRepo(user, repo) => (user, repo)
+  def maybeRepo: Option[(String, String)] =
+    try {
+      (Process("git remote -v") !!).split("""\n""").collectFirst {
+        case GhRepo(user, repo) => (user, repo)
+      }
+    } catch {
+      case _ => None
     }
-  }
 }
