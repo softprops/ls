@@ -16,6 +16,7 @@ object Build extends sbt.Build {
     version := "0.1.0-RC1",
     publishTo :=  Some(Resolver.file("lessis repo", new java.io.File("/var/www/repo")))
   )
+  val dispatchVersion = "0.8.6"
 
   lazy val root = Project("root", file("."), settings = buildSettings ++ Seq(
     HeroShim.stage in Compile := {})) aggregate(
@@ -31,7 +32,7 @@ object Build extends sbt.Build {
                            scalacOptions += "-deprecation",
                            libraryDependencies ++= Seq(
                              "com.codahale" %% "jerkson" % "0.5.0",
-                             "net.databinder" %% "dispatch-http" % "0.8.5",
+                             "net.databinder" %% "dispatch-http" % dispatchVersion,
                              "net.databinder" %% "unfiltered-netty-server" % "0.5.0",
                              "com.mongodb.casbah" %% "casbah" % "2.1.5-1"
                            )) ++ coffeeSettings ++ lessSettings ++ HeroShim.shimSettings ++ /* heroicSettings ++ */
@@ -48,10 +49,18 @@ object Build extends sbt.Build {
                             name := "ls-sbt",
                             libraryDependencies ++= Seq(
                               "com.codahale" %% "jerkson" % "0.5.0",
-                              "net.databinder" %% "dispatch-http" % "0.8.5"
+                              "net.databinder" %% "dispatch-http" % dispatchVersion
                             ),
                             resolvers += Resolvers.coda
                           )) dependsOn(lib)
+
+  lazy val app = Project("app", file("app"),
+                          settings = buildSettings ++ 
+                            conscript.Harness.conscriptSettings ++ Seq(
+                              libraryDependencies += 
+                                "net.databinder" %% "dispatch-http" % dispatchVersion
+                            )
+                        ) dependsOn(lib)
 
   /*lazy val tools = Project("ls-tools", file("tools"),
                          settings = buildSettings ++ Seq(
