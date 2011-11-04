@@ -43,6 +43,8 @@ object Plugin extends sbt.Plugin {
     private def key(name: String) = "ls-%s" format name
   }
 
+  val DefaultLsHost = "http://ls.implicit.ly"
+
   private def http[T](hand: Handler[T]): T = {
     val h = new Http with NoLogging
     try { h(hand) }
@@ -51,7 +53,7 @@ object Plugin extends sbt.Plugin {
         "ls is currently not available to take your call"
       )
       case uh:java.net.UnknownHostException => sys.error(
-        "You may not know your host as well as you think. Your http client doesnt know %s" format uh.getMessage
+        "You may not know your host as well as you think. Your http client doesn't know %s" format uh.getMessage
       )
     }
     finally { h.shutdown() }
@@ -144,7 +146,7 @@ object Plugin extends sbt.Plugin {
 
           val ls = inClassLoader(classOf[LibraryVersions]) { 
             parse[Seq[LibraryVersions]](
-              http(Client("http://localhost:5000").lib(lib, version)(user)(repo) as_str)
+              http(Client(DefaultLsHost).lib(lib, version)(user)(repo) as_str)
             )
           }
           // one or more lines consisting of libraryDependency and resolvers
@@ -228,8 +230,90 @@ object Plugin extends sbt.Plugin {
 
   def lsInstall = Command.single("ls-install")(depend(true))
 
-  def lsSettings: Seq[Setting[_]] = Seq(
-    colors := true,
+  lazy val lsCommonSettings: Seq[Setting[_]] = Seq(
+    host in lsync := DefaultLsHost
+  )
+
+  def lsSearchSettings: Seq[Setting[_]] = lsCommonSettings ++ Seq(
+    colors in lsync := true,
+    find <<= inputTask { (argsTask: TaskKey[Seq[String]]) =>
+      (argsTask, streams, host in lsync, colors in lsync) map {
+        case (args, out, host, color) =>
+          val cli = Client(host)
+          def named(name: String) = name.split("@") match {
+            case Array(name) => cli.lib(name)_
+            case Array(name, version) => cli.lib(name, version = Some(version))_
+          }
+          args match {
+            case Seq() => sys.error(
+              """Please provide at least one argument.
+                |usage: name@version user repo
+                | @version, user and repo are all optional
+                |""".stripMargin
+            )
+            case Seq(name) =>
+              try {
+                libraries(
+                  inClassLoader(classOf[LibraryVersions]) {
+                    parse[Seq[LibraryVersions]](http(named(name)(None)(None) as_str))
+                  }, out.log, color, name.split("@"):_*)
+              } catch {
+                case StatusCode(404, msg) =>
+                  out.log.info("%s library not found" format name)
+              }
+            case Seq(name, user) =>
+              try {
+                 libraries(
+                   inClassLoader(classOf[LibraryVersions]) {
+                     parse[Seq[LibraryVersions]](http(named(name)(Some(user))(None) as_str))
+                   }, out.log, color, name.split("@") :+ user: _*)
+              } catch {
+                case StatusCode(404, msg) =>
+                  out.log.info("%s library not found for %s" format(name, user))
+              }
+            case Seq(name, user, repo) =>
+              try {
+                libraries(
+                  inClassLoader(classOf[LibraryVersions]) {
+                    parse[Seq[LibraryVersions]](http(named(name)(Some(user))(Some(repo)) as_str))
+                  }, out.log, color, name.split("@") :+ user :+ repo: _*)
+              } catch {
+                case StatusCode(404, msg) =>
+                  out.log.info("%s library not found for %s/%s" format(name, user, repo))
+              }
+          }
+      }
+    },
+    search <<= inputTask { (argsTask: TaskKey[Seq[String]]) =>
+      (argsTask, streams, host in lsync, colors in lsync, state) map {
+        case (args, out, host, color, state) =>
+          args match {
+            case Seq() => sys.error(
+              "Please provide at lease one search keyword"
+            )
+            case kwords =>
+              val cli = Client(host)
+              try {
+                libraries(
+                  inClassLoader(classOf[LibraryVersions]) {
+                    parse[Seq[LibraryVersions]](http(cli.search(kwords.toSeq) as_str))
+                  },
+                  out.log, color,
+                  args:_*
+                )
+              } catch {
+                case StatusCode(404, msg) =>
+                  out.log.info("library not found for keywords %s" format kwords.mkString(", "))
+              }
+          }
+      }
+    },
+    (aggregate in search) := false,
+    (aggregate in find) := false,
+    commands ++= Seq(lsTry, lsInstall)
+  )
+
+  def lsPublishSettings: Seq[Setting[_]] = lsCommonSettings ++ Seq(
     version in lsync <<= (version in Runtime)(_.replace("-SNAPSHOT","")),
     sourceDirectory in lsync <<= (sourceDirectory in Compile)( _ / "ls"),
     versionFile <<= (sourceDirectory in lsync, version in lsync)(_ / "%s.json".format(_)),
@@ -264,93 +348,18 @@ object Plugin extends sbt.Plugin {
       case Some((_, repo)) => Some(repo)
       case _ => None
     }),
-    (host in lsync) := "http://ls.implicit.ly",
     lsync <<= lsyncTask,
-    (aggregate in lsync) := false,
-    find <<= inputTask { (argsTask: TaskKey[Seq[String]]) =>
-      (argsTask, streams, host in lsync) map {
-        case (args, out, host) =>
-          val cli = Client(host)
-          // todo: define query dsl
-          def named(name: String) = name.split("@") match {
-            case Array(name) => cli.lib(name)_
-            case Array(name, version) => cli.lib(name, version = Some(version))_
-          }
-          args match {
-            case Seq() => sys.error(
-              """Please provide at least one argument.
-                |usage: name@version user repo
-                | @version, user and repo are all optional
-                |""".stripMargin
-            )
-            case Seq(name) =>
-              try {
-                libraries(
-                  inClassLoader(classOf[LibraryVersions]) {
-                    parse[Seq[LibraryVersions]](http(named(name)(None)(None) as_str))
-                  }, out.log, name.split("@"):_*)
-              } catch {
-                case StatusCode(404, msg) =>
-                  out.log.info("%s library not found" format name)
-              }
-            case Seq(name, user) =>
-              try {
-                 libraries(
-                   inClassLoader(classOf[LibraryVersions]) {
-                     parse[Seq[LibraryVersions]](http(named(name)(Some(user))(None) as_str))
-                   }, out.log, name.split("@") :+ user: _*)
-              } catch {
-                case StatusCode(404, msg) =>
-                  out.log.info("%s library not found for %s" format(name, user))
-              }
-            case Seq(name, user, repo) =>
-              try {
-                libraries(
-                  inClassLoader(classOf[LibraryVersions]) {
-                    parse[Seq[LibraryVersions]](http(named(name)(Some(user))(Some(repo)) as_str))
-                  }, out.log, name.split("@") :+ user :+ repo: _*)
-              } catch {
-                case StatusCode(404, msg) =>
-                  out.log.info("%s library not found for %s/%s" format(name, user, repo))
-              }
-          }
-      }
-    },
-    search <<= inputTask { (argsTask: TaskKey[Seq[String]]) =>
-      (argsTask, streams, host in lsync, state) map {
-        case (args, out, host, state) =>
-          args match {
-            case Seq() => sys.error(
-              "Please provide at lease one search keyword"
-            )
-            case kwords =>
-              val cli = Client(host)
-              try {
-                libraries(
-                  inClassLoader(classOf[LibraryVersions]) {
-                    parse[Seq[LibraryVersions]](http(cli.search(kwords.toSeq) as_str))
-                  },
-                  out.log,
-                  args:_*
-                )
-              } catch {
-                case StatusCode(404, msg) =>
-                  out.log.info("library not found for keywords %s" format kwords.mkString(", "))
-              }
-          }
-      }
-    },
-    (aggregate in search) := false,
-    (aggregate in find) := false,
-    commands ++= Seq(lsTry, lsInstall)
+    (aggregate in lsync) := false
   )
+
+  def lsSettings: Seq[Setting[_]] = lsSearchSettings ++ lsPublishSettings
 
   trait Wheel[T] {
     def turn: Wheel[T]
     def get: T
   }
 
-  def libraries(libs: Seq[LibraryVersions], log: sbt.Logger, terms: String*) = {
+  def libraries(libs: Seq[LibraryVersions], log: sbt.Logger, colors: Boolean, terms: String*) = {
     val tups = libs.map(l => (l.name, l.versions.map(_.version).mkString(", "), l.description))
     val len = math.max(tups.map{ case (n, vs, _ ) => "%s (%s)".format(n, vs).size }.sortWith(_>_).head, 10)
     val fmt = "%s %-" + len + "s # %s"
@@ -367,14 +376,16 @@ object Plugin extends sbt.Plugin {
 
     def hl(txt: String, terms: Seq[String],
            cw: Wheel[String] = colorWheel(c)): String =
-      terms match {
-        case head :: Nil =>
-          txt.replaceAll("""(?i)(\?\S+)?(""" + head + """)(\?\S+)?""", cw.get + "$0\033[0m").trim
-        case head :: tail =>
-          hl(txt.replaceAll("""(?i)(\?\S+)?(""" + head + """)(\\S+)?""", cw.get + "$0\033[0m").trim,
-             tail, cw.turn)
-        case Nil => txt
-      }
+      if(colors) {
+        terms match {
+          case head :: Nil =>
+            txt.replaceAll("""(?i)(\?\S+)?(""" + head + """)(\?\S+)?""", cw.get + "$0\033[0m").trim
+          case head :: tail =>
+            hl(txt.replaceAll("""(?i)(\?\S+)?(""" + head + """)(\\S+)?""", cw.get + "$0\033[0m").trim,
+               tail, cw.turn)
+          case Nil => txt
+        }
+      } else txt
 
     val clrs = util.Random.shuffle(c)
     tups.zipWithIndex map { case ((n, v, d), i) =>
