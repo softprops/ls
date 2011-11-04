@@ -65,7 +65,9 @@ object Readme {
       <p>No wants you to hand copy that for every library you write. That's what plugins are for.</p>
       <h3>ls-sbt plugin</h3>
       <p>To install a convenient ls client, add the following to your projects plugin definition</p>
-      <pre><code>addSbtPlugin("me.lessis" % "ls-sbt" % "0.1.0")</code></pre>
+      <pre><code>addSbtPlugin("me.lessis" % "ls-sbt" % "0.1.0")
+resolvers += "coda" at "http://repo.codahale.com"
+</code></pre>
       <p>Then mix in the provided settings into your build definition</p>
       <pre><code>seq(lsSettings: _*)</code></pre>
       <p>Add or edit the generated file under <code>src/main/ls/:version.json</code> to fit your liking before commiting to git and pushing to your Github remote</p>
