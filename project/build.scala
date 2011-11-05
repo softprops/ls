@@ -20,7 +20,7 @@ object Build extends sbt.Build {
 
   lazy val root = Project("root", file("."), settings = buildSettings ++ Seq(
     HeroShim.stage in Compile := {})) aggregate(
-    svr, plugin, lib
+    svr, plugin, lib, app
   )
 
   lazy val lib = Project("library", file("library"),
