@@ -7,19 +7,20 @@ object LsInit {
   }
   def run(args: Array[String]): Int = {
     val base = new java.io.File(args.headOption.getOrElse("."))
-    if (base.isDirectory) {
+    val result = if (base.isDirectory) {
       lsVersion match {
         case Some(version) =>
-          println(version)
-          0
+          Right(version)
         case None =>
-          println("Unable to retrive current ls version")
-          1
+          Left("Unable to retrive current ls version")
       }
     } else {
-      println("Directory not found: " + base.getAbsolutePath)
-      1
+      Left("Directory not found: " + base.getAbsolutePath)
     }
+    result.fold(
+      { err => println(err); 1 },
+      { msg => println(msg); 0 }
+    )
   }
   def lsVersion = {
     import dispatch._
