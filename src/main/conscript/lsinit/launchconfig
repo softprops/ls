@@ -1,6 +1,6 @@
 [app]
   version: 0.1.0-RC1
-  org: lessis.me
+  org: me.lessis
   name: ls-app
   class: ls.LsInit
 [scala]
