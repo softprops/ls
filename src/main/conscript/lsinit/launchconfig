@@ -1,0 +1,11 @@
+[app]
+  version: 0.1.0-RC1
+  org: lessis.me
+  name: ls-app
+  class: ls.LsInit
+[scala]
+  version: 2.9.1
+[repositories]
+  local
+  scala-tools-releases
+  maven-central

@@ -57,6 +57,7 @@ object Build extends sbt.Build {
   lazy val app = Project("app", file("app"),
                           settings = buildSettings ++ 
                             conscript.Harness.conscriptSettings ++ Seq(
+                              name := "ls-app",
                               libraryDependencies += 
                                 "net.databinder" %% "dispatch-http" % dispatchVersion
                             )
