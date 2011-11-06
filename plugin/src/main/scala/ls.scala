@@ -84,15 +84,15 @@ object Plugin extends sbt.Plugin {
           out.log.debug("Writing %s to %s" format(info.json, f))
           IO.write(f, info.json)
         } else Prompt.ask(
-          "Version info for %s@%s already exists? To you wish to override it? [Y/N] " format(
+          "Overwrite existing version info for %s@%s? [Y/n] " format(
             info.name, info.version
           )) { r =>
             val a = r.trim.toLowerCase
-            if(Prompt.Yes contains a) {
+            if(Prompt.Yes.contains(a) || a.trim.isEmpty) {
               out.log.debug("writing %s to %s" format(info.json, f))
               IO.write(f, info.json)
             }
-            else if(Prompt.No contains a) out.log.info("Canceling request")
+            else if(Prompt.No contains a) out.log.info("Skipped.")
             else sys.error("Unexpected answer %s" format a)
           }
     }
