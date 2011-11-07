@@ -79,18 +79,22 @@ object Plugin extends sbt.Plugin {
   private def writeVersionTask: Initialize[Task[Unit]] = 
      (streams, versionFile, versionInfo) map {
       (out, f, info) =>
+        def write() {
+          out.log.debug("version info: %s" format(info.json))
+          IO.write(f, info.json)
+          out.log.info("Wrote %s" format(f))
+        }
+
         if(!f.exists) {
           f.getParentFile().mkdirs()
-          out.log.debug("Writing %s to %s" format(info.json, f))
-          IO.write(f, info.json)
+          write()
         } else Prompt.ask(
           "Overwrite existing version info for %s@%s? [Y/n] " format(
             info.name, info.version
           )) { r =>
             val a = r.trim.toLowerCase
             if(Prompt.Yes.contains(a) || a.trim.isEmpty) {
-              out.log.debug("writing %s to %s" format(info.json, f))
-              IO.write(f, info.json)
+              write()
             }
             else if(Prompt.No contains a) out.log.info("Skipped.")
             else sys.error("Unexpected answer %s" format a)
