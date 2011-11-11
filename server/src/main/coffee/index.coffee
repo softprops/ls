@@ -46,6 +46,7 @@ $ ->
   $("a.page").live 'click', (e) ->
     e.preventDefault()
     pg = $(this).data().page
+    $("#libraries").empty().addClass("spin")
     ls.libraries pg, perPage+1, display(pg)
     return false
 
