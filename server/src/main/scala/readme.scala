@@ -70,9 +70,14 @@ resolvers += "coda" at "http://repo.codahale.com"
 </code></pre>
       <p>Then mix in the provided settings into your build definition</p>
       <pre><code>seq(lsSettings: _*)</code></pre>
+      <p>Since you will surely tire of repeating this for every project, we made a <a href="https://github.com/n8han/conscript">conscript</a> app that adds the above settings for you.</p>
+      <pre><code>$ cs softprops/ls
+$ lsinit</code></pre>
+      <p>With the plugin installed to your project, you can generate version info automatically from its sbt build.</p>
+      <pre><code>sbt> ls-write-version</code></pre>
       <p>Add or edit the generated file under <code>src/main/ls/:version.json</code> to fit your liking before commiting to git and pushing to your Github remote</p>
       <p>When you are ready to sync your libraries build info with ls, do the following</p>
-      <pre><code>sbt> ls-write-version</code></pre>
+      <pre><code>sbt> lsync</code></pre>
       <p>That's it! Free free to go ahead and start banging out the next awesome version of your library now.</p>
     </div>
 
