@@ -2,8 +2,7 @@ import sbt._
 import Keys._
 
 object Build extends sbt.Build {
-  import coffeescript.CoffeeScript
-  import CoffeeScript._
+  import coffeescript.Plugin._
   import less.Plugin._
   //import heroic.Plugin._
 
@@ -37,7 +36,7 @@ object Build extends sbt.Build {
                              "com.mongodb.casbah" %% "casbah" % "2.1.5-1"
                            )) ++ coffeeSettings ++ lessSettings ++ HeroShim.shimSettings ++ /* heroicSettings ++ */
                           Seq(
-                           (targetDirectory in Coffee) <<= (resourceManaged in Compile) { _ / "www" / "js" },
+                           (resourceManaged in (Compile, CoffeeKeys.coffee)) <<= (resourceManaged in Compile) { _ / "www" / "js" },
                            (resourceManaged in (Compile, LessKeys.less)) <<= (resourceManaged in Compile) { _ / "www" / "css" },
                            (LessKeys.mini in (Compile, LessKeys.less)) := true,
                            resolvers += Resolvers.coda
