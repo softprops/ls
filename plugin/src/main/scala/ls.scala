@@ -283,11 +283,26 @@ object Plugin extends sbt.Plugin {
     commands ++= Seq(lsTry, lsInstall)
   )
 
+  /* https://github.com/harrah/xsbt/wiki/Configurations */
+  def testDependency(m: sbt.ModuleID) =
+    m.configurations match {
+      case Some(conf) => conf.trim.toLowerCase.startsWith("test")
+      case _ => false
+    }
+
+  def scalaLib(m: sbt.ModuleID) =
+    m.organization.trim.toLowerCase.equals(
+      "org.scala-lang"
+    )
+
   def lsPublishSettings: Seq[Setting[_]] = lsCommonSettings ++ Seq(
     version in lsync <<= (version in Runtime)(_.replace("-SNAPSHOT","")),
     sourceDirectory in lsync <<= (sourceDirectory in Compile)( _ / "ls"),
     versionFile <<= (sourceDirectory in lsync, version in lsync)(_ / "%s.json".format(_)),
-    dependencyFilter := { m => m.organization != "org.scala-lang" },
+    // exclude scala lib and test dependencies by default
+    dependencyFilter := { m =>
+      !(scalaLib(m) || testDependency(m))
+    },
     docsUrl := None,
     tags := Nil,
     description in lsync <<= (description in Runtime),
