@@ -245,7 +245,9 @@ object Libraries extends Logged {
               (implicit cct: CanConvertListTo[C]) =
    libraries { c =>
      log.info("getting libraries for terms %s" format terms.mkString(", "))
-     val query = "_keywords" $in terms
+     val possiblies =  (MongoDBObject().empty /: terms)((a, e) => a += ("name" -> """(?i)%s""".format(e).r))
+     val parts = (possiblies ++ ("_keywords" $in terms)).toMap
+     val query = $or(parts.toSeq:_*)
      log.info("any query: %s" format query)
      f(cct( c.find(query).skip(lim * (page - 1)).limit(lim) ))
    }
