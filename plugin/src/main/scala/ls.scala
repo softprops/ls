@@ -29,6 +29,7 @@ object Plugin extends sbt.Plugin {
     val tags = SettingKey[Seq[String]](key("tags"), "List of taxonomy tags for the library")
     val docsUrl = SettingKey[Option[URL]](key("doc-url"), "Url for library documentation")
     val optionals = SettingKey[Optionals](key("optionals"), "Optional project info")
+    val skipWrite = SettingKey[Boolean](key("skip-write"), "Skip this module in write-version")
 
     val ghUser = SettingKey[Option[String]](key("gh-user"), "Github user name")
     val ghRepo = SettingKey[Option[String]](key("gh-repo"), "Github repository name")
@@ -74,15 +75,16 @@ object Plugin extends sbt.Plugin {
     }
 
   private def writeVersionTask: Initialize[Task[Unit]] = 
-     (streams, versionFile, versionInfo) map {
-      (out, f, info) =>
+     (streams, versionFile, versionInfo, skipWrite) map {
+      (out, f, info, skip) =>
         def write() {
           out.log.debug("version info: %s" format(info.json))
           IO.write(f, info.json)
           out.log.info("Wrote %s" format(f))
         }
-
-        if(!f.exists) {
+        if (skip) {
+          out.log.info("Skipping %s".format(f))
+        } else if(!f.exists) {
           f.getParentFile().mkdirs()
           write()
         } else Prompt.ask(
@@ -293,6 +295,7 @@ object Plugin extends sbt.Plugin {
     optionals <<= (description in lsync, homepage in lsync, tags, docsUrl, licenses in lsync)((desc, homepage, tags, docs, lics) =>
        Optionals(desc, homepage, tags, docs, lics.map { case (name, url) => License(name, url.toString) })
     ),
+    skipWrite := false,
     externalResolvers in lsync := Seq(ScalaToolsReleases),
     licenses in lsync <<= licenses in GlobalScope,
     versionInfo <<=
