@@ -340,14 +340,19 @@ object Libraries extends Logged {
         ) } catch {
           case e => e.printStackTrace
         } else {
-          log.info("should update currents versions list")
           // this could get ugly!
-          val current = currentVersions.head
+          val current: LibraryVersions = currentVersions.head.copy(
+            description = l.description,
+            site = l.site,
+            tags = l.tags,
+            sbt = l.sbt,
+            contributors = l.contributors
+          )
           val versions = current.versions.toSeq
           val (contained, notcontained) = versions.partition(_.version == l.version)
           if(contained.isEmpty) {
             val appended = (Version(
-              l.version,l.docs,
+              l.version, l.docs,
               l.resolvers, l.dependencies,
               l.scalas,
               l.licenses
