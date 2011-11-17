@@ -1,6 +1,17 @@
 html, body, div, span, applet, object, iframe,html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td,article,aside,canvas,details,embed,figure,figcaption,footer,header,hgroup,menu,nav,output,ruby,section,summary,time,mark,audio,video{margin:0;padding:0;border:0;font-size:100%;font:inherit;vertical-align:baseline}article,aside,details,figcaption,figure,footer,header,hgroup,menu,nav,section{display:block}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}table{border-collapse:collapse;border-spacing:0}
 
-.clearfix:after{content:".";display:block;clear:both;visibility:hidden;line-height:0;height:0}.clearfix{display:inline-block}html[xmlns] .clearfix{display:block}* html .clearfix{height:1%}
+.clearfix() {
+  zoom: 1;
+  &:before,
+  &:after {
+    display: table;
+    content: "";
+    zoom: 1;
+  }
+  &:after {
+    clear: both;
+  }
+}
 
 @background-color: #FCFCFC;
 @link-color: #80EAFF;
@@ -12,7 +23,6 @@ html, body, div, span, applet, object, iframe,html,body,div,span,applet,object,i
 @light-color: #E7E7E7;
 @container-width: 940px;
 @sel-color: darken(@default-color, 20%);
-
 
 .spin {
   background-image: url(/img/spin.gif);
@@ -26,6 +36,7 @@ html, body, div, span, applet, object, iframe,html,body,div,span,applet,object,i
 
 .pagination {
   clear:both;
+  text-align:center;
   .page {
     margin-right:1em;
   }
@@ -52,6 +63,13 @@ html, body, div, span, applet, object, iframe,html,body,div,span,applet,object,i
   -moz-box-shadow:    @val;
 }
 
+.outshadowed (@color: #D6F5FF, @x:0px, @y: 0px, @blur: 6px) {
+  @val: @x @y @blur @color;
+  box-shadow:         @val;
+  -webkit-box-shadow: @val;
+  -moz-box-shadow:    @val;
+}
+
 .textfield-like {
   -webkit-appearance: textfield;
   -webkit-box-sizing: content-box;
@@ -59,17 +77,33 @@ html, body, div, span, applet, object, iframe,html,body,div,span,applet,object,i
   box-sizing: content-box;
 }
 
+.transitioned(@prop: all, @duration: 0.25s, @timing-fn: linear) {
+  -webkit-transition: @prop @duration @timing-fn;
+	-moz-transition: @prop @duration @timing-fn;
+	-o-transition: @prop @duration @timing-fn;
+	-ms-transition: @prop @duration @timing-fn;
+	transition: @prop @duration @timing-fn;
+}
+
 input[type='search'] {
+  .transitioned(box-shadow, .2s);
   .rounded;
-  .shadowed;
+  .outshadowed(#eee);
   .textfield-like;
-  border:1px solid ccc;  
+  border:1px solid #ccc;  
   text-align:center;
   font-weight:bold;
   font-size:26px;
   padding:.25em;
   width:80%;
   margin: 0 auto;
+}
+
+input[type='search']:focus {
+  .transitioned(box-shadow, .2s);
+  outline:none;
+  border:1px solid #31DDFF;
+  .outshadowed(#31DDFF);
 }
 
 input[type="search"]::-webkit-search-cancel-button {
@@ -123,7 +157,16 @@ p {
     .centered;
   }
   #libraries {
-    min-height:300px;
+    .content {
+      min-height:300px;
+      max-height:300px;
+      overflow:hidden;
+      width:940px;
+      position:relative;
+    }
+    .controls {
+
+    }
     .none-found {
       text-align:center;
     }
@@ -133,6 +176,14 @@ p {
       width: @container-width / 3.2;
       li {
         margin-bottom:1em;
+        h3 {
+          font-weight:bold;
+        }
+        .t {
+          color:@light-color;
+          font-size:smaller;
+          line-height:0.75em;
+        }
       }
     }
     a:link span, a:visited span {
@@ -239,6 +290,9 @@ p {
           clear:both;
           margin-bottom:1em;
         }
+        .install pre {
+          overflow:scroll;
+        }
         .library-dependencies {
           span {
             font-size:18px;
@@ -275,7 +329,7 @@ p {
 }
 
 .author .num {
-  font-size: larger;
+  font-size: 260%;
   font-weight:bold;
 }
 

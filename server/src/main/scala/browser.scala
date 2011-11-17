@@ -25,14 +25,15 @@ object Browser extends Logged {
           (libs.size, libs.map(libraryVersions))
         }
       divided(
+        header =
+          <h1 class="author-name">
+            <a href={ "/%s" format user }>{ user }</a>
+          </h1>,
         right = <div>
           <ul class="libraries">{ libsMarkup }</ul>
         </div>,
         left =
           <div class="author">
-            <h1 class="author-name">
-              <a href={ "/%s" format user }>{ user }</a>
-            </h1>
             <h2 class="contributes">contributes to</h2>
             <p><span>{ if(count==0) "no" else <span class="num">{ count }</span> }</span> libraries</p>
             <p class="gh">
@@ -51,12 +52,13 @@ object Browser extends Logged {
           (libs.toList, libs.map(libraryVersions))
         })
       divided(
+        header =
+          <h1 class="project-name">
+            <a href={"/%s/%s/" format(user, repo)}>{ repo }</a>
+          </h1>,
         right = <ul>{ libMarkup }</ul>,
         left  = <div class="lib">
           <div class="head">
-            <h1 class="project-name">
-              <a href={"/%s/%s/" format(user, repo)}>{ repo }</a>
-            </h1>
             <p class="gh">
               on <a target="_blank" href={"https://github.com/%s/%s/" format(user, repo)}>github</a>
             </p>

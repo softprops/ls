@@ -17,40 +17,45 @@ $ ->
         <a href='/#{l.ghuser}/#{l.ghrepo}\##{l.name}'>#{l.name}<span class='at'>@</span><span class='v'>#{l.versions[0].version}</span></a>
       </h3>
       <div>#{l.description}</div>
+      <div class='t'>#{Time.agoInWords(l.updated)}</div>
      </li>"
 
   perPage = 9
 
   display = (page, term) ->
     (libs) ->
-      $("#libraries").removeClass("spin")
+      content = $("#libraries .content").removeClass("spin")
       if libs.length
         visible = libs.slice(0, perPage)
         [c, r] = [2, 3]
         columns = [0..c].map (i) ->
           flatten ['<ul>', (visible[i*r...i*r+r].map (l) -> li l), '</ul>']
         rows = flatten(columns)
-        rows.push('<div class="pagination">')
+        pagination = ['<div class="pagination">']
         if page > 1
-          rows.push("<a href='javascript:void(0)' class='page' data-page='#{page-1}'>less</a>")
+          pagination.push("<a href='javascript:void(0)' class='page' data-page='#{page-1}'>less</a>")
         if libs.length > perPage
-          rows.push("<a href='javascript:void(0)' class='page' data-page='#{page+1}'>more</a>")
-        rows.push("</div>")
-        $("#libraries").html(rows.join(''))
+          pagination.push("<a href='javascript:void(0)' class='page' data-page='#{page+1}'>more</a>")
+        pagination.push("</div>")
+        newrows = $("<div data-page='#{page}' class='clearfix'>#{rows.join('')}</div>")
+        content.html(newrows)
+
+        $("#libraries .control").html(pagination.join(''))
       else
         why = if term then "matching #{term}" else "found"
-        $("#libraries").html(
+        $("#libraries .content").html(
           "<div class='none-found'>No published libraries #{why}. Maybe you should start one.</div>"
           )
+        $("#libraries .control").empty()
 
   $("a.page").live 'click', (e) ->
     e.preventDefault()
     pg = $(this).data().page
-    $("#libraries").empty().addClass("spin")
+    $("#libraries .content").empty().addClass("spin")
     ls.libraries pg, perPage+1, display(pg)
-    return false
+    false
 
-  $("#libraries").addClass("spin")
+  $("#libraries .content").addClass("spin")
 
   if window.location.hash.length and window.location.hash not in ['#publishing', '#finding', '#installing', '#uris']
     term = window.location.hash.substring(1)
@@ -67,7 +72,7 @@ $ ->
 
   search = () ->
     q = $.trim($("#q").val())
-    $("#libraries").empty().addClass("spin")
+    $("#libraries .content").empty().addClass("spin")
     if q.length > 2
       ls.search q, 1, perPage+1, display(1, q)
     else if q.length is 0
