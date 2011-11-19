@@ -53,7 +53,7 @@ $ ->
     link = $(this).data()
     pg = link.page
     $("#libraries .content").empty().addClass("spin")
-    if link.term?
+    if link.term is not "undefined"
       ls.search link.term, pg, perPage + 1, display(pg, link.term)
     else
       ls.libraries pg, perPage+1, display(pg)
