@@ -85,12 +85,12 @@ $ lsinit</code></pre>
       <h1><a href="#finding">Thumbing through</a></h1>
       <p>There are lot of libraries out there, but they are not as easy to find as they could be. For starters, you need to know the name of the library, then you need to rummage though its (hopefully well-documented) documentation to find version information and installation notes.</p>
       <p>ls aims to make finding Scala libraries as simple as it possibly can be by adding some vocabulary to your sbt shell</p>
-      <pre><code>sbt> ls-find unfiltered</code></pre>
+      <pre><code>sbt> ls -l unfiltered</code></pre>
       <p>This command will find any ls-published library named <code>unfiltered</code>, listing recent versions with descriptions</p>
       <p>What if you are looking for a specific version? Just add <code>@:version</code> to your query</p>
-      <pre><code>sbt> ls-find unfiltered@0.5.1</code></pre>
+      <pre><code>sbt> ls -l unfiltered@0.5.1</code></pre>
       <p>What if you don't know what a libraries name is at all? Try searcing by tags and see what pops up.</p>
-      <pre><code>sbt> ls-search web netty</code></pre>
+      <pre><code>sbt> ls web netty</code></pre>
     </div>
 
     <div id="installing">
@@ -106,7 +106,7 @@ $ lsinit</code></pre>
     <div id="uris">
       <h1><a href="#uris">You or I</a></h1>
       <p>Because of the open nature of Github, a forked repository can coexist with another of the same name under a different user's account. Libraries is ls are just references to <code>uris</code>. More specifically a uri for Github repository, a library name, and version.</p>
-      <pre><code>sbt> ls-find library@0.5.0 user/repo</code></pre>
+      <pre><code>sbt> ls -l library@0.5.0 user/repo</code></pre>
       <p>
         By default <code>try</code> and <code>install</code> will always use the latest version of a library by name using an inferred uri.
       </p>
