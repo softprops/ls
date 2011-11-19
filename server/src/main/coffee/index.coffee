@@ -33,9 +33,9 @@ $ ->
         rows = flatten(columns)
         pagination = ['<div class="pagination">']
         if page > 1
-          pagination.push("<a href='javascript:void(0)' class='page' data-page='#{page-1}'>less</a>")
+          pagination.push("<a href='javascript:void(0)' class='page' data-term='#{term}' data-page='#{page-1}'>less</a>")
         if libs.length > perPage
-          pagination.push("<a href='javascript:void(0)' class='page' data-page='#{page+1}'>more</a>")
+          pagination.push("<a href='javascript:void(0)' class='page' data-term='#{term}' data-page='#{page+1}'>more</a>")
         pagination.push("</div>")
         newrows = $("<div data-page='#{page}' class='clearfix'>#{rows.join('')}</div>")
         content.html(newrows)
@@ -50,9 +50,13 @@ $ ->
 
   $("a.page").live 'click', (e) ->
     e.preventDefault()
-    pg = $(this).data().page
+    link = $(this).data()
+    pg = link.page
     $("#libraries .content").empty().addClass("spin")
-    ls.libraries pg, perPage+1, display(pg)
+    if link.term?
+      ls.search link.term, pg, perPage + 1, display(pg, link.term)
+    else
+      ls.libraries pg, perPage+1, display(pg)
     false
 
   $("#libraries .content").addClass("spin")
