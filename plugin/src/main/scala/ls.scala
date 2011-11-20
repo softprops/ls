@@ -9,12 +9,11 @@ object Plugin extends sbt.Plugin {
   import org.apache.http.conn.{ HttpHostConnectException => ConnectionRefused }
   import scala.collection.JavaConversions._
   import com.codahale.jerkson.Json._
-  import com.codahale.jerkson.AST._
   import LsKeys.{ ls => lskey, _ }
   import java.io.File
   import java.net.URL
   import dispatch._
-  import sbt.{ModuleID => SbtModuleID}
+  import sbt.{ ModuleID => SbtModuleID }
   import ls.LibraryVersions
 
   object LsKeys {
@@ -24,7 +23,7 @@ object Plugin extends sbt.Plugin {
     val writeVersion = TaskKey[Unit](key("write-version"), "Writes version data to descriptor file")
     val lsync = TaskKey[Unit]("lsync", "Synchronizes github project info with ls server")
     val dependencyFilter = SettingKey[SbtModuleID => Boolean]("dependency-filter",
-                                                              "Filters library dependencies included in version-info")
+      "Filters library dependencies included in version-info")
     // optional attributes
     val tags = SettingKey[Seq[String]](key("tags"), "List of taxonomy tags for the library")
     val docsUrl = SettingKey[Option[URL]](key("doc-url"), "Url for library documentation")
@@ -47,7 +46,7 @@ object Plugin extends sbt.Plugin {
     val h = new Http with NoLogging
     try { h(hand) }
     catch {
-      case cf:ConnectionRefused => sys.error(
+      case cf: ConnectionRefused => sys.error(
         "ls is currently not available to take your call"
       )
       case uh:java.net.UnknownHostException => sys.error(
@@ -151,54 +150,83 @@ object Plugin extends sbt.Plugin {
               http(Client(DefaultLsHost).lib(lib, version)(user)(repo) as_str)
             )
           }
+
           // one or more lines consisting of libraryDependency and resolvers
-          val lines: Seq[String] = if(ls.size > 1) {
-            sys.error("More than one libraries resolved")
+          // lhs is (plugin config, plugin instruct) | rhs is library config
+          val lines: Either[(Seq[String], String), Seq[String]] = if(ls.size > 1) {
+            sys.error("More than one libraries were resolved. Try prefixing the library name with :user/:repo/:library-name to disambiguate.")
           } else {
             val l = ls(0)
             (version match {
               case Some(v) => l.versions.find(_.version.equalsIgnoreCase(v))
               case _ => Some(l.versions(0))
             }) match {
-              case Some(v) =>
-                val depLine = ("""libraryDependencies += "%s" %%%% "%s" %% "%s"%s""" format(
-                  l.organization, l.name, v.version, config match {
-                    case Some(c) => """ %% "%s" """.format(c)
-                    case _ => ""
-                  }
-                )).trim
+              case Some(v) =>                
+                if(l.sbt) {
+                  println("Discovered sbt plugin %s@%s" format(l.name, v.version))
+                  val depLine = ("""addSbtPlugin("%s" %% "%s" %% "%s")""" format(
+                    l.organization, l.name, v.version)
+                  ).trim
 
-                val rsvrLines = (v.resolvers.filterNot(sbtDefaultResolver).zipWithIndex.map {
-                  case (url, i) =>
-                    "resolvers += \"%s\" at \"%s\"".format(
-                      "%s-resolver-%s".format(l.name, i),
-                      url
-                    )
-                })
-                depLine +: rsvrLines
+                  val rsvrLines = (v.resolvers.filterNot(sbtDefaultResolver).zipWithIndex.map {
+                    case (url, i) =>
+                      "resolvers += \"%s\" at \"%s\"".format(
+                        "%s-resolver-%s".format(l.name, i),
+                        url
+                      )
+                  })
+                  val allLines = depLine +: rsvrLines
+                  Left((allLines, PluginSupport.help(l, v, allLines)))                  
+                } else {
+                  println("Discovered library %s@%s" format(l.name, v.version))
+                  val depLine = ("""libraryDependencies += "%s" %%%% "%s" %% "%s"%s""" format(
+                    l.organization, l.name, v.version, config match {
+                      case Some(c) => """ %% "%s" """.format(c)
+                      case _ => ""
+                    }
+                  )).trim
+
+                  val rsvrLines = (v.resolvers.filterNot(sbtDefaultResolver).zipWithIndex.map {
+                    case (url, i) =>
+                      "resolvers += \"%s\" at \"%s\"".format(
+                        "%s-resolver-%s".format(l.name, i),
+                        url
+                      )
+                  })
+                  Right(depLine +: rsvrLines)
+                }
 
               case _ => sys.error("Could not find %s version of this library. possible versions (%s)" format(
                 version.getOrElse("latest"), l.versions.mkString(", "))
               )
             }
           }
+
+          // todo: refactorize
+          // whats going on below is simply building up a pipeline of of settings
+          // to ship off to sbt to eval, reload and optional save
           val extracted = Project extract state
 		      import extracted._
           import BuiltinCommands.{imports, reapply, DefaultBootCommands}
 		      import CommandSupport.{DefaultsCommand, InitCommand}
 
-          val (first, rest) = (lines.head, lines.tail)
+          lines.fold({
+            case (pinLines, help) =>
+              println(help)
+              state
+          }, { libLines =>
+            val (first, rest) = (libLines.head, libLines.tail)
           
-		      val settings = EvaluateConfigurations.evaluateSetting(
-            session.currentEval(), "<set>", imports(extracted), first, 0
-          )(currentLoader)
-		      val append = Load.transformSettings(
-            Load.projectScope(currentRef), currentRef.build, rootProject, settings
-          )
-		      val newSession = session.appendSettings( append map (a => (a, first)))
+		        val settings = EvaluateConfigurations.evaluateSetting(
+              session.currentEval(), "<set>", imports(extracted), first, 0
+            )(currentLoader)
+		        val append = Load.transformSettings(
+              Load.projectScope(currentRef), currentRef.build, rootProject, settings
+            )
+		        val newSession = session.appendSettings( append map (a => (a, first)))
 
-          val (_, _, newestSession) = ((settings, append, newSession) /: rest)((a, line) => a match {
-             case (set, app, ses) =>
+            val (_, _, newestSession) = ((settings, append, newSession) /: rest)((a, line) => a match {
+              case (set, app, ses) =>
                 val settings = EvaluateConfigurations.evaluateSetting(
                   ses.currentEval(), "<set>", imports(extracted), line, 0
                 )(currentLoader)
@@ -207,14 +235,13 @@ object Plugin extends sbt.Plugin {
               )
 		          val newSession = ses.appendSettings( append map (a => (a, line)))
               (settings, append, newSession)
-            }
-          )
+            })
 
-
-		      val commands = DefaultsCommand +: InitCommand +: DefaultBootCommands
-		      reapply(newestSession, structure,
-            if(persistently) state.copy(remainingCommands = "session save" +: commands)
-            else state)
+		        val commands = DefaultsCommand +: InitCommand +: DefaultBootCommands
+		        reapply(newestSession, structure,
+              if(persistently) state.copy(remainingCommands = "session save" +: commands)
+              else state)
+          })
         } catch {
           case dispatch.StatusCode(404, msg) => sys.error(
             "Library not found %s" format msg
@@ -243,7 +270,7 @@ object Plugin extends sbt.Plugin {
           val log = out.log
           args match {
             case Seq() => sys.error(
-              "Please provide at lease one or more search keyword or -l <name of library>"
+              "Please provide at lease one or more search keywords or -l <name of library>"
             )
             case Seq("-l", name) =>
               val cli = Client(host)
@@ -252,19 +279,19 @@ object Plugin extends sbt.Plugin {
                 case Array(name, version) => cli.lib(name, version = Some(version))_
               }
               try {
-                log.info("fetching library info for %s" format name)
+                log.info("Fetching library %s" format name)
                 libraries(
                   inClassLoader(classOf[LibraryVersions]) {
                     parse[Seq[LibraryVersions]](http(named(name)(None)(None) as_str))
                   }, log, color, name.split("@"):_*)
               } catch {
                 case StatusCode(404, msg) =>
-                  out.log.info("%s library not found" format name)
+                  out.log.info("`%s` library not found" format name)
               }
             case kwords =>
               val cli = Client(host)
               try {
-                log.info("fetching library for libraries matching %s" format kwords.mkString(", "))
+                log.info("Fetching libraries matching %s" format kwords.mkString(", "))
                 libraries(
                   inClassLoader(classOf[LibraryVersions]) {
                     parse[Seq[LibraryVersions]](http(cli.search(kwords.toSeq) as_str))
@@ -307,8 +334,13 @@ object Plugin extends sbt.Plugin {
     tags := Nil,
     description in lsync <<= (description in Runtime),
     homepage in lsync <<= (homepage in Runtime),
-    optionals <<= (description in lsync, homepage in lsync, tags, docsUrl, licenses in lsync)((desc, homepage, tags, docs, lics) =>
-       Optionals(desc, homepage, tags, docs, lics.map { case (name, url) => License(name, url.toString) })
+    optionals <<= (description in lsync, homepage in lsync, tags,
+                   docsUrl, licenses in lsync)(
+      (desc, homepage, tags, docs, lics) =>
+        Optionals(desc, homepage, tags, docs, lics.map {
+          case (name, url) => License(name, url.toString)
+        }
+      )
     ),
     skipWrite := false,
     externalResolvers in lsync := Seq(ScalaToolsReleases),
@@ -322,8 +354,9 @@ object Plugin extends sbt.Plugin {
        libraryDependencies,
        dependencyFilter,
        sbtPlugin,
-       crossScalaVersions) map { (o, n, v, opts, rsvrs, ldeps, dfilter, csv, pi) =>
-         VersionInfo(o, n, v, opts, rsvrs, ldeps.filter(dfilter), pi, csv)
+       crossScalaVersions) map {
+        (o, n, v, opts, rsvrs, ldeps, dfilter, csv, pi) =>
+          VersionInfo(o, n, v, opts, rsvrs, ldeps.filter(dfilter), pi, csv)
        },
     writeVersion <<= writeVersionTask,
     ghUser := (maybeRepo match {
@@ -340,28 +373,13 @@ object Plugin extends sbt.Plugin {
 
   def lsSettings: Seq[Setting[_]] = lsSearchSettings ++ lsPublishSettings
 
-  trait Wheel[T] {
-    def turn: Wheel[T]
-    def get: T
-  }
-
   def libraries(libs: Seq[LibraryVersions], log: sbt.Logger, colors: Boolean, terms: String*) = {
     val tups = libs.map(l => (l.name, l.versions.map(_.version).mkString(", "), l.description))
     val len = math.max(tups.map{ case (n, vs, _ ) => "%s (%s)".format(n, vs).size }.sortWith(_>_).head, 10)
     val fmt = "%s %-" + len + "s # %s"
-
-    val c = "\033[0;32m" :: "\033[0;33m" :: "\033[0;34m" :: "\033[0;35m" :: "\033[0;36m" ::  Nil
     val lterms: Seq[String] = terms.toList
-    def colorWheel(opts: Seq[String]): Wheel[String] = new Wheel[String] {
-      def turn = opts match {
-        case head :: tail => colorWheel(tail ::: head :: Nil)
-        case head => colorWheel(head)
-      }
-      def get = opts(0)
-    }
-
     def hl(txt: String, terms: Seq[String],
-           cw: Wheel[String] = colorWheel(c)): String =
+           cw: Wheel[String] = Wheels.default): String =
       if(colors) {
         terms match {
           case head :: Nil =>
@@ -373,14 +391,14 @@ object Plugin extends sbt.Plugin {
         }
       } else txt
 
-    val clrs = util.Random.shuffle(c)
+    val clrs = Wheels.shuffle
     tups.zipWithIndex map { case ((n, v, d), i) =>
       log.info(
         hl(fmt format(
           "%s)" format i,
           "%s (%s)".format(n,v),
           d
-        ), lterms, colorWheel(clrs))
+        ), lterms, Wheels.colorWheel(clrs))
       )
     }
     if(libs.isEmpty) log.info("(no projects matching the terms %s)" format terms.mkString(" "))
@@ -388,18 +406,14 @@ object Plugin extends sbt.Plugin {
 
   object GhRepo {
     val GHRemote = """^git@github.com[:](\S+)/(\S+)[.]git$""".r
-     def unapply(line: String) = line.split("""\s+""") match {
-       case Array(_, GHRemote(user, repo), _) => Some(user, repo)
-       case _ => None
-     } 
-   }
+    def unapply(line: String) = line.split("""\s+""") match {
+      case Array(_, GHRemote(user, repo), _) => Some(user, repo)
+      case _ => None
+    } 
+  }
 
   def maybeRepo: Option[(String, String)] =
-    try {
-      (Process("git remote -v") !!).split("""\n""").collectFirst {
-        case GhRepo(user, repo) => (user, repo)
-      }
-    } catch {
-      case _ => None
+    Process("git remote -v").lines_!(ProcessLogging.silent).collectFirst {
+      case GhRepo(user, repo) => (user, repo)
     }
 }
