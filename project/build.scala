@@ -23,49 +23,53 @@ object Build extends sbt.Build {
   )
 
   lazy val lib = Project("library", file("library"),
-                       settings = buildSettings ++ Seq(name := "ls"))
+    settings = buildSettings ++ Seq(name := "ls"))
 
   lazy val svr = Project("server", file("server"),
-                         settings = buildSettings ++ Seq(
-                           name := "ls-server",
-                           scalacOptions += "-deprecation",
-                           libraryDependencies ++= Seq(
-                             "com.codahale" %% "jerkson" % "0.5.0",
-                             "net.databinder" %% "dispatch-http" % dispatchVersion,
-                             "net.databinder" %% "unfiltered-netty-server" % "0.5.0",
-                             "com.mongodb.casbah" %% "casbah" % "2.1.5-1"
-                           )) ++ coffeeSettings ++ lessSettings ++ HeroShim.shimSettings ++ /* heroicSettings ++ */
-                          Seq(
-                           (resourceManaged in (Compile, CoffeeKeys.coffee)) <<= (resourceManaged in Compile) { _ / "www" / "js" },
-                           (resourceManaged in (Compile, LessKeys.less)) <<= (resourceManaged in Compile) { _ / "www" / "css" },
-                           (LessKeys.mini in (Compile, LessKeys.less)) := true,
-                           resolvers += Resolvers.coda
-                         )) dependsOn(lib)
+    settings = buildSettings ++ Seq(
+      name := "ls-server",
+      scalacOptions += "-deprecation",
+      libraryDependencies ++= Seq(
+        "com.codahale" %% "jerkson" % "0.5.0",
+        "net.databinder" %% "dispatch-http" % dispatchVersion,
+        "net.databinder" %% "unfiltered-netty-server" % "0.5.0",
+        "com.mongodb.casbah" %% "casbah" % "2.1.5-1"
+      )) ++ coffeeSettings ++ lessSettings ++ HeroShim.shimSettings ++ /* heroicSettings ++ */
+         Seq(
+           (resourceManaged in (Compile, CoffeeKeys.coffee)) <<= (resourceManaged in Compile) {
+             _ / "www" / "js"
+           },
+           (resourceManaged in (Compile, LessKeys.less)) <<= (resourceManaged in Compile) {
+             _ / "www" / "css"
+           },
+           (LessKeys.mini in (Compile, LessKeys.less)) := true,
+           resolvers += Resolvers.coda
+         )) dependsOn(lib)
 
   lazy val plugin = Project("plugin", file("plugin"),
-                          settings = buildSettings ++ Seq(
-                            sbtPlugin := true,
-                            name := "ls-sbt",
-                            libraryDependencies ++= Seq(
-                              "com.codahale" %% "jerkson" % "0.5.0",
-                              "net.databinder" %% "dispatch-http" % dispatchVersion
-                            ),
-                            resolvers += Resolvers.coda
-                          )) dependsOn(lib)
+    settings = buildSettings ++ Seq(
+      sbtPlugin := true,
+      name := "ls-sbt",
+      libraryDependencies ++= Seq(
+        "com.codahale" %% "jerkson" % "0.5.0",
+        "net.databinder" %% "dispatch-http" % dispatchVersion
+      ),
+      resolvers += Resolvers.coda
+    )) dependsOn(lib)
 
   lazy val app = Project("app", file("app"),
-                          settings = buildSettings ++ 
-                            conscript.Harness.conscriptSettings ++ Seq(
-                              name := "ls-app",
-                              libraryDependencies += 
-                                "net.databinder" %% "dispatch-http" % dispatchVersion
-                            )
-                        ) dependsOn(lib)
+    settings = buildSettings ++ 
+      conscript.Harness.conscriptSettings ++ Seq(
+        name := "ls-app",
+        libraryDependencies += 
+        "net.databinder" %% "dispatch-http" % dispatchVersion
+      )
+    ) dependsOn(lib)
 
   /*lazy val tools = Project("ls-tools", file("tools"),
-                         settings = buildSettings ++ Seq(
-                           libraryDependencies += "com.mongodb.casbah" %% "casbah" % "2.1.5-1",
-                           sbtPlugin := true
-                         )) dependsOn(lib)*/
+      settings = buildSettings ++ Seq(
+        libraryDependencies += "com.mongodb.casbah" %% "casbah" % "2.1.5-1",
+        sbtPlugin := true
+      )) dependsOn(lib)*/
 
 }
