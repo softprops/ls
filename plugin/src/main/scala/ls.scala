@@ -63,7 +63,7 @@ object Plugin extends sbt.Plugin with Requesting {
     private def key(name: String) = "ls-%s" format name
   }
 
-  val DefaultLsHost = "http://localhost:5000"//"http://ls.implicit.ly"
+  val DefaultLsHost = "http://ls.implicit.ly"
 
   private def lsyncTask: Initialize[Task[Unit]] =
     (streams, ghUser, ghRepo, version in lsync, host in lsync) map {
