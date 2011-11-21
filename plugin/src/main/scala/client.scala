@@ -4,7 +4,7 @@ case class Client(host: String) {
   import dispatch._
   import java.net.URLEncoder.encode
   val utf8 = java.nio.charset.Charset.forName("utf-8")
-  lazy val api = url(host) / "api"
+  lazy val api = url(host) / "api" / "1"
 
   implicit def pathMappableRequest(r: dispatch.Request) = new {
     def /?(p: Option[String]) = p.map(r / _).getOrElse(r)

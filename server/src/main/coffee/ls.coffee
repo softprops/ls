@@ -3,7 +3,7 @@ $ = jQuery
 $ ->
   # ls api client
   root.ls = () ->
-    api = 'http://' + window.location.host + "/api"
+    api = 'http://' + window.location.host + "/api/1"
     fallback = (f) -> (e) -> f []
     methods = {
       # return a list of all libraries

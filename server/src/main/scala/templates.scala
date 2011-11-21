@@ -24,12 +24,23 @@ object Templates {
       case ok => <a href={ ok } target="_blank">Project page</a>
     }
 
-  def libraryVersions(l: LibraryVersions) =
-    <div class="lib" id={l.name}>
+  def fullLibraryVersions = libraryVersions(true)_
+
+  def shortLibraryVersions = libraryVersions(false)_
+
+  def libraryVersions(full: Boolean)(l: LibraryVersions) =
+    <div class="lib" id={ l.name }>
       <h2>
-        <a href={ "/%s/%s/#%s" format(l.ghuser.get, l.ghrepo.get, l.name) }>{ l.name }</a>
+        <a href={ "/%s/%s/#%s" format(l.ghuser.get, l.ghrepo.get, l.name) }>
+          { l.name }
+        </a>
       </h2>
       <p class="description">{ l.description }</p>
+      { if(full) libraryVersionsDetails(l) }
+    </div>
+
+  def libraryVersionsDetails(l: LibraryVersions) =
+    <div>
       {
         if(!l.tags.isEmpty) <p class="tags">filed under { l.tags.map(tag) }</p>
       }
@@ -38,11 +49,22 @@ object Templates {
         <ul class="version-nums">{
           (l.versions.take(1), l.versions.drop(1)) match {
             case (first,  Nil) =>
-             <li class="sel" id={ "%s-%s" format(l.name, first(0).version.replaceAll("[.]", "-"))}><a href="#">{first(0).version}</a></li>
+             <li class="sel" id={ "%s-%s" format(
+                 l.name, first(0).version.replaceAll("[.]", "-")
+               )}>
+               <a href="javascript:void(0)">{ first(0).version }</a>
+             </li>
             case (first, rest) =>
-              <li class="sel" id={ "%s-%s" format(l.name, first(0).version.replaceAll("[.]", "-"))}>
-                <a href="#">{first(0).version}</a>
-              </li> ++ rest.map(v => <li id={ "%s-%s" format(l.name, v.version.replaceAll("[.]", "-")) }><a href="#">{v.version}</a></li>)
+              <li class="sel" id={ "%s-%s" format(
+                  l.name, first(0).version.replaceAll("[.]", "-")
+                )}>
+                <a href="javascript:void(0)">{ first(0).version }</a>
+              </li> ++ rest.map(v =>
+              <li id={ "%s-%s" format(
+                l.name, v.version.replaceAll("[.]", "-")
+                ) }>
+                <a href="javascript:void(0)">{ v.version }</a>
+              </li>)
           }
         }</ul>
         <div class="version-details">{ 
@@ -50,24 +72,38 @@ object Templates {
             case (first,  Nil) =>
              version(l, first(0), true)
             case (first, rest) =>
-              version(l, first(0), true) ++ rest.map(v => version(l, v, false))
+              version(l, first(0), true) ++ rest.map(v =>
+                version(l, v, false)
+              )
           }
-        }</div>
+        }
+        </div>
       </div>
-   </div>
+  </div>
 
-  def dep(m: ModuleID) = <li><span>{ m.name }</span><span class="at">@</span><span>{ m.version }</span></li>
+  def dep(m: ModuleID) =
+    <li>
+      <span>{ m.name }</span>
+      <span class="at">@</span>
+      <span>{ m.version }</span>
+    </li>
 
   def version(l: LibraryVersions, v: Version, sel: Boolean) =
-    <div class={ "version %s" format(if(sel) "sel" else "") } id={ "v-%s-%s" format(l.name, v.version.replaceAll("[.]", "-")) }>
+    <div class={ "version %s" format(if(sel) "sel" else "") }
+         id={ "v-%s-%s" format(l.name, v.version.replaceAll("[.]", "-")) }>
       <div class="section version-name">
-        <h2>{v.version}</h2>
+        <h2>{ l.name } <span class="at">@</span> { v.version }</h2>
         <span>{ docs(v.docs) }</span>
       </div>
       <div class="section install">
         <h3>Install</h3>
         <div>
-         { installInfo(ModuleID(l.organization, l.name, v.version), v.resolvers, v.scalas, l.sbt) }
+         {
+           installInfo(
+             ModuleID(l.organization, l.name, v.version),
+             v.resolvers, v.scalas, l.sbt
+           )
+          }
         </div>
       </div>
       <div class="section scala-versions">
@@ -91,19 +127,25 @@ object Templates {
     "\n\nresolvers += \"%s\" at \"%s\"".format(name, uri)
 
  def sbtDefaultResolver(s: String) =
-   s.contains("http://repo1.maven.org/maven2/") || s.contains("http://scala-tools.org/repo-releases")
+   s.contains("http://repo1.maven.org/maven2/") ||
+   s.contains("http://scala-tools.org/repo-releases")
 
+  def installInfo(mid: ModuleID, resolvers: Seq[String],
+                  scalaVersions: Seq[String], sbtPlugin: Boolean) =
+    if(sbtPlugin) installSbtPluginInfo(
+      mid, resolvers: Seq[String], scalaVersions: Seq[String]
+    ) else installLibraryInfo(
+      mid, resolvers: Seq[String], scalaVersions: Seq[String]
+    )
 
-  def installInfo(mid: ModuleID, resolvers: Seq[String], scalaVersions: Seq[String], sbtPlugin: Boolean) =
-    if(sbtPlugin) installSbtPluginInfo(mid, resolvers: Seq[String], scalaVersions: Seq[String])
-    else installLibraryInfo(mid, resolvers: Seq[String], scalaVersions: Seq[String])
-
-  def installSbtPluginInfo(mid: ModuleID, resolvers: Seq[String], scalaVersions: Seq[String]) =
+  def installSbtPluginInfo(mid: ModuleID, resolvers: Seq[String],
+                           scalaVersions: Seq[String]) =
     <p>Add the following to your sbt plugins definition. <span class="clippy">{
      installSbtPluginText(mid, resolvers, scalaVersions)
     }</span></p> ++ { installSbtPlugin(mid, resolvers, scalaVersions) }
 
-  def installSbtPluginText(mid: ModuleID, resolvers: Seq[String], scalaVersions: Seq[String]) =
+  def installSbtPluginText(mid: ModuleID, resolvers: Seq[String],
+                           scalaVersions: Seq[String]) =
     "addSbtPlugin(\"%s\" %% \"%s\" %% \"%s\") %s".format(
       mid.organization, mid.name, mid.version, 
       (resolvers.filterNot(sbtDefaultResolver).zipWithIndex.map {
@@ -111,15 +153,18 @@ object Templates {
       ).mkString("\n")
    )
 
-  def installSbtPlugin(mid: ModuleID, resolvers: Seq[String], scalaVersions: Seq[String]) =
+  def installSbtPlugin(mid: ModuleID, resolvers: Seq[String],
+                       scalaVersions: Seq[String]) =
     <pre><code>{ installSbtPluginText(mid, resolvers, scalaVersions) }</code></pre>
 
-  def installLibraryInfo(mid: ModuleID, resolvers: Seq[String], scalaVersions: Seq[String]) =
+  def installLibraryInfo(mid: ModuleID, resolvers: Seq[String],
+                         scalaVersions: Seq[String]) =
    <p>Add the following to your sbt build definition. <span class="clippy">{
      installLibraryText(mid, resolvers, scalaVersions)
    }</span></p> ++ { installLibrary(mid, resolvers, scalaVersions) }
 
- def installLibraryText(mid: ModuleID, resolvers: Seq[String], scalaVersions: Seq[String]) =
+ def installLibraryText(mid: ModuleID, resolvers: Seq[String],
+                        scalaVersions: Seq[String]) =
    "libraryDependencies += \"%s\" %%%% \"%s\" %% \"%s\" %s".format(
       mid.organization, mid.name, mid.version, 
       (resolvers.filterNot(sbtDefaultResolver).zipWithIndex.map {
@@ -127,13 +172,13 @@ object Templates {
       ).mkString("\n")
    )
 
- def installLibrary(mid: ModuleID, resolvers: Seq[String], scalaVersions: Seq[String]) =
+  def installLibrary(mid: ModuleID, resolvers: Seq[String], scalaVersions: Seq[String]) =
     <pre><code>{ installLibraryText(mid, resolvers, scalaVersions) }</code></pre>
 
-  def divided(header: NodeSeq, right: NodeSeq, left: NodeSeq, title: String = "ls")(scripts: String*)(sheets: String*) =
+  def main(header: NodeSeq, content: NodeSeq, title: String = "ls")(scripts: String*)(sheets: String*) =
     layout(
       <div> { header } </div>
-      <div id="left"> { left } </div> ++ <div id="right"> { right } </div>,
+      <div id="content"> { content } </div>,
       title = title
     )(scripts:_*)(sheets:_*)
 

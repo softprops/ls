@@ -1,6 +1,6 @@
 html, body, div, span, applet, object, iframe,html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td,article,aside,canvas,details,embed,figure,figcaption,footer,header,hgroup,menu,nav,output,ruby,section,summary,time,mark,audio,video{margin:0;padding:0;border:0;font-size:100%;font:inherit;vertical-align:baseline}article,aside,details,figcaption,figure,footer,header,hgroup,menu,nav,section{display:block}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}table{border-collapse:collapse;border-spacing:0}
 
-.clearfix() {
+.clearfix {
   zoom: 1;
   &:before,
   &:after {
@@ -42,10 +42,11 @@ html, body, div, span, applet, object, iframe,html,body,div,span,applet,object,i
   }
 }
 
-.rounded (@radius: 4px) {
-  -moz-border-radius:4px;
-  -webkit-border-radius:4px;
-  border-radius:4px;
+.rounded (@top-left: 4px, @top-right: 4px, @bottom-right: 4px, @bottom-left: 4px) {
+  @val: @top-left @top-right @bottom-right @bottom-left;
+  -moz-border-radius:@val;
+  -webkit-border-radius:@val;
+  border-radius:@val;
 }
 
 .gradient(@start, @end) {
@@ -127,7 +128,11 @@ p {
   background:#464646;
   color:@background-color;
   a:link, a:visited {
-    color: #fff;
+    text-shadow:0 1px #000;
+  }
+  h1 a:link, h1 a:visited {
+    color:#fff;
+    line-height:1.5em;
   }
 
   #publishing, #finding, #installing, #uris {
@@ -169,6 +174,9 @@ p {
     }
     .none-found {
       text-align:center;
+      .term {
+        font-weight:bold;
+      }
     }
     ul {
       float:left;
@@ -209,20 +217,12 @@ p {
   margin:1em auto;
 }
 
-#right {
-  float:left;
-  width:620px;
-}
-
-#left {
-  float:left;
-  width:300px;
-  border-right:1px solid #eee;
-  margin-right:1em;
+#content {
+  clear:both;
 }
 
 #foot {
-  width:940px;
+  width:@container-width;
   margin:0 auto;
   clear:both;
   padding:1em 0;
@@ -231,12 +231,43 @@ p {
   }
 }
 
+
+#contributors li {
+  float: left;
+  margin-left:.25em;
+}
+
+.head-extra {
+  .clearfix;
+  margin: .5em 0;
+  background:#464646;
+  color:@background-color;
+  a:link, a:visited {
+    text-shadow:0 1px #000;
+  }
+}
+
+.author-extra {
+  .num {
+    font-size: 160%;
+    font-weight:bold;
+  }
+}
+
+.project-extra {
+  .rounded;
+  padding:.5em;
+  border:1px solid #eee;
+}
+
 .lib {
   margin:0 0 1em 0;
+
   .description {
     border-left: 4px solid #eee;
     padding-left: .5em;
   }
+
   .tags {
     .tag:visited, .tag:link {
       .rounded;
@@ -246,11 +277,7 @@ p {
       margin:.5em .25em;
     }
   }
-  .head {
-    .project-name {
-      letter-spacing:-3px
-    }
-  }
+
   h3 {
     font-size: 130%;
     line-height:1.5em;
@@ -269,9 +296,12 @@ p {
     .clearfix;
     .version-nums {
       float:left;
-      width:80px;
+      width:(@container-width / 8) * 1;
       li {
          padding-left:.25em;
+      }
+      .sel {
+        .rounded(4px, 0, 0, 4px);
       }
       .sel a:link, .sel a:visited {
         color: darken(@link-color, 20%);
@@ -279,10 +309,10 @@ p {
     }
     .version-details {
       .sel {
-        .rounded;
+        .rounded(0px);
       }
-      float:right;
-      width:540px;
+      float:left;
+      width:(@container-width / 8) * 7;
       .version {
         display:none;
         padding:.5em;
@@ -315,23 +345,8 @@ p {
   color:@sel-color;
 }
 
-.author {
-  .contributes {
-    margin:.5em 0 0 0;
-  }
-  .author-name {
-    letter-spacing:-3px;
-    overflow:hidden;
-  }
-}
-
 .home-link {
   font-size:18px;
-}
-
-.author .num {
-  font-size: 260%;
-  font-weight:bold;
 }
 
 pre {
@@ -363,7 +378,7 @@ h1 {
   font-size:80px;
   font-weight:bold;
   font-family: @fancy-font;
-  margin: 0 0 .25em 0;
+  margin: 0;
   line-height:1em;
   a:link, a:visited {
     color:#333;

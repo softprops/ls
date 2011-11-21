@@ -50,7 +50,7 @@ object Api extends Logged {
    *  If projects are resolved, but malformed not persistence is made.
    *  Otherwise all project info is stored for later retrival */
   def sync: Cycle.Intent[Any, Any] = {
-    case POST(Path(Seg("api" :: "libraries" :: Nil)) & Params(p)) =>
+    case POST(Path(Seg("api" :: "1" :: "libraries" :: Nil)) & Params(p)) =>
       val expect = for {
          user <- lookup("user") is required("missing")
          repo <- lookup("repo") is required("missing")
@@ -84,7 +84,7 @@ object Api extends Logged {
 
   /** Find libraries by ghuser (contributors included) */
   def authors: Cycle.Intent[Any, Any] = {
-    case GET(Path(Seg("api" :: "authors" :: user :: Nil))) =>
+    case GET(Path(Seg("api" :: "1" :: "authors" :: user :: Nil))) =>
       Clock("authors %s" format user, log) {
         Libraries.author(user)(asJson)
       }
@@ -92,7 +92,7 @@ object Api extends Logged {
 
   /** Find libraries by projects */
   def projects: Cycle.Intent[Any, Any] = {
-    case GET(Path(Seg("api" :: "projects" :: rest))) => Clock("projects %s" format rest, log) {
+    case GET(Path(Seg("api" :: "1" :: "projects" :: rest))) => Clock("projects %s" format rest, log) {
       rest match {
         case user :: Nil =>
           Libraries.projects(user)(asJson)
@@ -105,7 +105,7 @@ object Api extends Logged {
 
   /** Find libraries by name and version */
   def libraries: Cycle.Intent[Any, Any] = {
-    case GET(Path(Seg("api" :: "libraries" :: rest))) => Clock("libraries %s" format rest, log) {
+    case GET(Path(Seg("api" :: "1" :: "libraries" :: rest))) => Clock("libraries %s" format rest, log) {
       rest match {
         case name :: Nil =>
           Libraries(name)(asJson)
@@ -122,8 +122,9 @@ object Api extends Logged {
     }
   }
 
+  /** retrieves the latest version of a given library */
   def latest: Cycle.Intent[Any, Any] = {
-    case GET(Path(Seg("api" :: "latest" :: lib :: Nil)) & Params(p)) =>
+    case GET(Path(Seg("api" :: "1" :: "latest" :: lib :: Nil)) & Params(p)) =>
       val expect = for {
         user <- lookup("user") is optional[String, String]
         repo <- lookup("repo") is optional[String, String]
@@ -145,7 +146,7 @@ object Api extends Logged {
 
   /** Find libraries by keywords */
   def search: Cycle.Intent[Any, Any] = {
-     case GET(Path(Seg("api" :: "search" :: Nil)) & Params(p)) =>
+     case GET(Path(Seg("api" :: "1" :: "search" :: Nil)) & Params(p)) =>
        val expect = for {
          q <- lookup("q") is required("missing")
          pg <- lookup("page") is optional[String, String]
@@ -165,9 +166,9 @@ object Api extends Logged {
        }
   }
 
-  // Paginated sets of all libraries
+  /** Paginated sets of all libraries */
   def all: Cycle.Intent[Any, Any] = {
-    case GET(Path(Seg("api" :: "libraries" :: Nil)) & Params(p)) =>
+    case GET(Path(Seg("api" :: "1" :: "libraries" :: Nil)) & Params(p)) =>
       val expect = for {
          pg <- lookup("page") is optional[String, String]
          lim <- lookup("limit") is optional[String, String]

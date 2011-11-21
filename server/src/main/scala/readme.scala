@@ -14,17 +14,19 @@ object Readme {
           * 2 is not required, but highly recommended.
         </p>
         <p>
-          ls learns about your library through a process called <code>lsyncing</code>, which synchronizes with build information publicly hosted on Github. Because only privileged parties may commit to these repositories, ls is not concerned with who is requesting an lsync—that is, authentication—but with the controlled project metadata on Github.
+          ls learns about your library through a process called <code>lsyncing</code>, which synchronizes with build information hosted on Github. Because only privileged parties may commit to these repositories, ls is not concerned with who is requesting an lsync—that is, authentication—but with the controlled project metadata on Github.
       </p>
-      <h2 id="lsync-spec">Lsync spec</h2>
+      <h2 id="lsync-spec">Lsync spec format</h2>
       <p>
-        ls stores semi-structured information about your library's build in a json encoded file for each version of your library. The following is a description of the format that ls uses to capture this information.
+        ls stores semi-structured information about your library's build in a json encoded file for each published version of your library. It is encouraged to only lsync build info about released versions.
+      </p>
+      <p>The following is a description of the format that ls uses to capture library information.
       <pre><code>{{
  <span class="comment"># a maven/ivy organization identifier</span>
  <span class="key">"organization"</span>:"org.yourdomain",
- <span class="comment"># name of your awesome library</span>
+ <span class="comment"># name of your library</span>
  <span class="key">"name"</span>:"my-awesome-library",
- <span class="comment"># version of your awesome library</span>
+ <span class="comment"># version of your library</span>
  <span class="key">"version"</span>:"1.0",
  <span class="comment"># quaint description of what it provides</span>
  <span class="key">"description"</span>:"Hot stuff comin' through",
@@ -32,14 +34,14 @@ object Readme {
  <span class="key">"site"</span>:"http://yourdomain.org/awesome-library-overview",
  <span class="comment"># keywords to help others to find your library</span>
  <span class="key">"tags"</span>: ["awesome", "opossum"],
- <span class="comment"># a uri for api docs</span>
+ <span class="comment"># a uri for version-specific api docs</span>
  <span class="key">"docs"</span>:"https://yourdomain.org/awesome-library-docs",
- <span class="comment"># liceneses to ill</span>
+ <span class="comment"># licenses if you care for them</span>
  <span class="key">"licenses"</span>: [{{
    "name": "MIT",
    "url":"https://yourdomain.org/awesome-library/LICENSE"
   }}],
- <span class="comment"># when can others find your library</span>
+ <span class="comment"># where can your library be downloaded from</span>
  <span class="key">"resolvers"</span>: ["http://repo.yourdomain.org/"],
  <span class="comment"># what does your library depend on</span>
  <span class="key">"dependencies"</span>: [{{
@@ -47,7 +49,7 @@ object Readme {
    "name": "my-awesome-dependency",
    "version": "0.1.0"
   }}],
- <span class="comment"># cross-binary dialects</span>
+ <span class="comment"># scala cross-binary dialects</span>
  <span class="key">"scalas"</span>: [
    "2.8.0","2.8.1","2.8.2",
    "2.9.0","2.9.0-1","2.9.1"
@@ -60,22 +62,19 @@ object Readme {
   -F="<span class="key">user</span>=your-gh-user"
   -F="<span class="key">repo</span>=your-gh-repo"
   -F="<span class="key">version</span>=version-to-sync"</code></pre>
-     This will tell ls to recursively extract any files in the <code>github.com/your-gh-user/your-gh-repo</code> repository for files matching <code>src/main/ls/version-to-sync.json</code> and capture the above information.
+     This will tell ls to extract any files in the <code>github.com/your-gh-user/your-gh-repo</code> repository for files matching <code>src/main/ls/version-to-sync.json</code> and store the libraries metadata.
       </p>
-      <p>No wants you to hand copy that for every library you write. That's what plugins are for.</p>
-      <h3>ls-sbt plugin</h3>
-      <p>To install a convenient ls client, add the following to your projects plugin definition</p>
-      <pre><code>addSbtPlugin("me.lessis" % "ls-sbt" % "0.1.0")
-resolvers += "coda" at "http://repo.codahale.com"
-</code></pre>
-      <p>Then mix in the provided settings into your build definition</p>
-      <pre><code>seq(lsSettings: _*)</code></pre>
-      <p>Since you will surely tire of repeating this for every project, we made a <a href="https://github.com/n8han/conscript">conscript</a> app that adds the above settings for you.</p>
-      <pre><code>$ cs softprops/ls
-$ lsinit</code></pre>
+      <p>
+        No wants you to hand copy that for every library you write. That's what plugins are for.
+      </p>
+      <h2>Say hello to ls-sbt</h2>
+      <p>To install a convenient ls client, install the following <a href="https://github.com/n8han/conscript">conscript</a></p>
+      <pre><code>$ cs softprops/ls</code></pre>
+      <p>Then in the root of your project run</p>
+      <pre><code>$ lsinit</code></pre>
       <p>With the plugin installed to your project, you can generate version info automatically from its sbt build.</p>
       <pre><code>sbt> ls-write-version</code></pre>
-      <p>Add or edit the generated file under <code>src/main/ls/:version.json</code> to fit your liking before commiting to git and pushing to your Github remote</p>
+      <p>Add or edit the generated file under <code>src/main/ls/:version.json</code> to fit your liking before commiting to git and pushing to your Github remote.</p>
       <p>When you are ready to sync your libraries build info with ls, do the following</p>
       <pre><code>sbt> lsync</code></pre>
       <p>That's it! Free free to go ahead and start banging out the next awesome version of your library now.</p>
@@ -83,21 +82,23 @@ $ lsinit</code></pre>
 
     <div id="finding">
       <h1><a href="#finding">Thumbing through</a></h1>
-      <p>There are lot of libraries out there, but they are not as easy to find as they could be. For starters, you need to know the name of the library, then you need to rummage though its (hopefully well-documented) documentation to find version information and installation notes.</p>
-      <p>ls aims to make finding Scala libraries as simple as it possibly can be by adding some vocabulary to your sbt shell</p>
+      <p>There are lot of libraries out there, waiting to make your life easier.</p>
+      <p>ls aims to make finding Scala libraries as simple as it possibly can be by adding some vocabulary to your sbt shell.</p>
+      <p>To find a library by name use <code>ls -l</code></p>
       <pre><code>sbt> ls -l unfiltered</code></pre>
       <p>This command will find any ls-published library named <code>unfiltered</code>, listing recent versions with descriptions</p>
-      <p>What if you are looking for a specific version? Just add <code>@:version</code> to your query</p>
+      <p>What if you are looking for a specific version? Just add <code>@version</code> to your query</p>
       <pre><code>sbt> ls -l unfiltered@0.5.1</code></pre>
-      <p>What if you don't know what a libraries name is at all? Try searcing by tags and see what pops up.</p>
+      <p>What if you don't know the name of the library you are looking for? Try searcing by tags and see what pops up.</p>
       <pre><code>sbt> ls web netty</code></pre>
+      <p>Tags help categorize libraries and make them easier for users to find.</p>
     </div>
 
     <div id="installing">
        <h1><a href="installing">Checking the fit</a></h1>
        <p>Once you find the library you are looking for, you have a few options. You can hand edit a configuration file, paste in the info you had to previous search for or you could do</p>
        <pre><code>sbt> ls-try unfiltered</code></pre>
-       <p>This will temporarily add the latest version of unfiltered to your library chain. Try <code>console-quick</code> to play with the library in the repl. If you don't like it you can always remove it with the <code>session clear</code> command or by reloading your project. If you do find the library that fits you need, it's just as easy to install it.
+       <p>This will temporarily add the latest version of unfiltered to your library chain. Try <code>console-quick</code> to play with the library in the repl. If you don't like it you can always remove it with the sbt built-in command <code>session clear</code> or by reloading your project. If you do find the library that fits you need, it's just as easy to install it.
        </p>
        <pre><code>sbt> ls-install unfiltered</code></pre>
        <p>The same syntax for specifying a specific version applies</p>

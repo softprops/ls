@@ -4,45 +4,11 @@ import sbt._
 import Keys._
 import Project.Initialize
 
-object Plugin extends sbt.Plugin {
-  import ls.ClassLoaders._
-  import org.apache.http.conn.{ HttpHostConnectException => ConnectionRefused }
-  import scala.collection.JavaConversions._
-  import com.codahale.jerkson.Json._
-  import LsKeys.{ ls => lskey, _ }
-  import java.io.File
-  import java.net.URL
+trait Requesting {
   import dispatch._
-  import sbt.{ ModuleID => SbtModuleID }
-  import ls.LibraryVersions
+  import org.apache.http.conn.{ HttpHostConnectException => ConnectionRefused }
 
-  object LsKeys {
-    val colors = SettingKey[Boolean](key("colors"), "Colorize logging")
-    val versionInfo = TaskKey[VersionInfo](key("version-info"), "Information about a version of a project")
-    val versionFile = SettingKey[File](key("version-file"), "File storing version descriptor file")
-    val writeVersion = TaskKey[Unit](key("write-version"), "Writes version data to descriptor file")
-    val lsync = TaskKey[Unit]("lsync", "Synchronizes github project info with ls server")
-    val dependencyFilter = SettingKey[SbtModuleID => Boolean]("dependency-filter",
-      "Filters library dependencies included in version-info")
-    // optional attributes
-    val tags = SettingKey[Seq[String]](key("tags"), "List of taxonomy tags for the library")
-    val docsUrl = SettingKey[Option[URL]](key("doc-url"), "Url for library documentation")
-    val optionals = SettingKey[Optionals](key("optionals"), "Optional project info")
-    val skipWrite = SettingKey[Boolean](key("skip-write"), "Skip this module in write-version")
-
-    val ghUser = SettingKey[Option[String]](key("gh-user"), "Github user name")
-    val ghRepo = SettingKey[Option[String]](key("gh-repo"), "Github repository name")
-
-    // api
-    val host = SettingKey[String](key("host"), "Host ls server")
-    val ls = InputKey[Unit]("ls", "Search for remote libraries")
-
-    private def key(name: String) = "ls-%s" format name
-  }
-
-  val DefaultLsHost = "http://ls.implicit.ly"
-
-  private def http[T](hand: Handler[T]): T = {
+  def http[T](hand: Handler[T]): T = {
     val h = new Http with NoLogging
     try { h(hand) }
     catch {
@@ -55,6 +21,49 @@ object Plugin extends sbt.Plugin {
     }
     finally { h.shutdown() }
   }
+}
+
+object Plugin extends sbt.Plugin with Requesting {
+  import ls.ClassLoaders._
+  import scala.collection.JavaConversions._
+  import com.codahale.jerkson.Json._
+  import LsKeys.{ ls => lskey, _ }
+  import java.io.File
+  import java.net.URL
+  import dispatch._
+  import sbt.{ ModuleID => SbtModuleID }
+  import ls.LibraryVersions
+
+  object LsKeys {
+    // general
+    val colors = SettingKey[Boolean](key("colors"), "Colorize logging")
+    val host = SettingKey[String](key("host"), "Host ls server")
+    val usage = TaskKey[Unit]("usage", "Displays usage information for tasks")
+
+    // github
+    val ghUser = SettingKey[Option[String]](key("gh-user"), "Github user name")
+    val ghRepo = SettingKey[Option[String]](key("gh-repo"), "Github repository name")
+
+    // syncing
+    val versionInfo = TaskKey[VersionInfo](key("version-info"), "Information about a version of a project")
+    val versionFile = SettingKey[File](key("version-file"), "File storing version descriptor file")
+    val writeVersion = TaskKey[Unit](key("write-version"), "Writes version data to descriptor file")
+    val lsync = TaskKey[Unit]("lsync", "Synchronizes github project info with ls server")
+    val dependencyFilter = SettingKey[SbtModuleID => Boolean]("dependency-filter",
+      "Filters library dependencies included in version-info")
+    // optional attributes
+    val tags = SettingKey[Seq[String]](key("tags"), "List of taxonomy tags for the library")
+    val docsUrl = SettingKey[Option[URL]](key("doc-url"), "Url for library documentation")
+    val optionals = SettingKey[Optionals](key("optionals"), "Optional project info")
+    val skipWrite = SettingKey[Boolean](key("skip-write"), "Skip this module in write-version")
+
+    // discovery
+    val ls = InputKey[Unit]("ls", "Search for remote libraries")
+
+    private def key(name: String) = "ls-%s" format name
+  }
+
+  val DefaultLsHost = "http://localhost:5000"//"http://ls.implicit.ly"
 
   private def lsyncTask: Initialize[Task[Unit]] =
     (streams, ghUser, ghRepo, version in lsync, host in lsync) map {
@@ -193,6 +202,10 @@ object Plugin extends sbt.Plugin {
                         url
                       )
                   })
+                  if(persistently) println("Evaluating and installling %s@%s"format(l.name, v.version))
+                  else println("Evalutating %s@%s. Enter `session clear` to revert".format(
+                    l.name, v.version
+                  ))
                   Right(depLine +: rsvrLines)
                 }
 
@@ -215,8 +228,7 @@ object Plugin extends sbt.Plugin {
               println(help)
               state
           }, { libLines =>
-            val (first, rest) = (libLines.head, libLines.tail)
-          
+            val (first, rest) = (libLines.head, libLines.tail)        
 		        val settings = EvaluateConfigurations.evaluateSetting(
               session.currentEval(), "<set>", imports(extracted), first, 0
             )(currentLoader)
@@ -258,14 +270,25 @@ object Plugin extends sbt.Plugin {
 
   def lsInstall = Command.single("ls-install")(depend(true))
 
-  lazy val lsCommonSettings: Seq[Setting[_]] = Seq(
-    host in lsync := DefaultLsHost
-  )
-
-  def lsSearchSettings: Seq[Setting[_]] = lsCommonSettings ++ Seq(
-    colors in lsync := true,
+  def lsSearchSettings: Seq[Setting[_]] = Seq(
+    host in lskey := DefaultLsHost,
+    colors in lskey := true,
+    usage in lskey <<= (streams) map {
+      (out) =>
+        out.log.info("""
+        |Usage: ls [-l] [terms...]
+        |  
+        |Examples
+        |  # find a library named unfiltered
+        |  ls -l unfiltered 
+        |  # find a library named unfiltered at version of 0.5.1
+        |  ls -l unfiltered@0.5.1
+        |  # find libraries taged with terms web or http
+        |  ls web http
+        """.stripMargin)
+    },
     lskey <<= inputTask { (argsTask: TaskKey[Seq[String]]) =>
-      (argsTask, streams, host in lsync, colors in lsync, state) map {
+      (argsTask, streams, host in lskey, colors in lskey, state) map {
         case (args, out, host, color, state) =>
           val log = out.log
           args match {
@@ -322,7 +345,9 @@ object Plugin extends sbt.Plugin {
       "org.scala-lang"
     )
 
-  def lsPublishSettings: Seq[Setting[_]] = lsCommonSettings ++ Seq(
+  def lsPublishSettings: Seq[Setting[_]] = Seq(
+    host in lsync := DefaultLsHost,
+    colors in lsync := true,
     version in lsync <<= (version in Runtime)(_.replace("-SNAPSHOT","")),
     sourceDirectory in lsync <<= (sourceDirectory in Compile)( _ / "ls"),
     versionFile <<= (sourceDirectory in lsync, version in lsync)(_ / "%s.json".format(_)),
@@ -392,10 +417,10 @@ object Plugin extends sbt.Plugin {
       } else txt
 
     val clrs = Wheels.shuffle
-    tups.zipWithIndex map { case ((n, v, d), i) =>
+    tups map { case (n, v, d) =>
       log.info(
         hl(fmt format(
-          "%s)" format i,
+          " -",
           "%s (%s)".format(n,v),
           d
         ), lterms, Wheels.colorWheel(clrs))

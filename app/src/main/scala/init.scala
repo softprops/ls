@@ -26,7 +26,7 @@ object LsInit {
   }
   def lsVersion = {
     import dispatch._
-    val req = :/("ls.implicit.ly") / "api" / "latest" / "ls-sbt"
+    val req = :/("ls.implicit.ly") / "api" / "1" / "latest" / "ls-sbt"
     val http = new Http with NoLogging
     try {
       http(req >- { js =>

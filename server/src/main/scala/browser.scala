@@ -22,26 +22,23 @@ object Browser extends Logged {
     case GET(Path(Seg(user :: Nil))) => Clock("show author %s" format user, log) {
       val (count, libsMarkup) =
         Libraries.author(user) { (libs: Iterable[LibraryVersions]) =>
-          (libs.size, libs.map(libraryVersions))
+          (libs.size, libs.map(shortLibraryVersions))
         }
-      divided(
+      main(
         header =
           <h1 class="author-name">
             <a href={ "/%s" format user }>{ user }</a>
-          </h1>,
-        right = <div>
+          </h1>
+         <div class="head-extra author-extra">
+            <h2 class="contributes">
+              contributes to <span>{ if(count==0) "no" else <span class="num">{ count }</span> }</span> libraries on <a target="_blank" href={ "https://github.com/%s/" format user }>Github</a>
+            </h2>
+          </div>
+        ,
+        content = <div>
           <ul class="libraries">{ libsMarkup }</ul>
         </div>,
-        left =
-          <div class="author">
-            <h2 class="contributes">contributes to</h2>
-            <p><span>{ if(count==0) "no" else <span class="num">{ count }</span> }</span> libraries</p>
-            <p class="gh">
-              on <a target="_blank" href={ "https://github.com/%s/" format user }>github</a>
-            </p>
-            <p>{ homeLink }</p>
-          </div>,
-          title = "ls /%s" format user
+        title = "ls /%s" format user
       )("jquery.clippy.min", "versions")()
     }
 
@@ -49,31 +46,27 @@ object Browser extends Logged {
     case GET(Path(Seg(user :: repo :: Nil))) => Clock("show project %s/%s" format(user, repo), log) {
       val (libs, libMarkup) =
         Libraries.projects(user, Some(repo))({ (libs: Iterable[LibraryVersions]) =>
-          (libs.toList, libs.map(libraryVersions))
+          (libs.toList, libs.map(fullLibraryVersions))
         })
-      divided(
+      main(
         header =
           <h1 class="project-name">
             <a href={"/%s/%s/" format(user, repo)}>{ repo }</a>
-          </h1>,
-        right = <ul>{ libMarkup }</ul>,
-        left  = <div class="lib">
-          <div class="head">
-            <p class="gh">
-              on <a target="_blank" href={"https://github.com/%s/%s/" format(user, repo)}>github</a>
-            </p>
-            <p class="by-line">
-              <p>Contributors</p>
+          </h1>
+          <div class="head-extra project-extra">
+            on <a target="_blank" href={"https://github.com/%s/%s/" format(user, repo)}>Github</a> with contributions from
+            <div id="contributors">
               <ul>
               { libs(0).contributors match {
-                case Some(cs) => cs.map(c => <li>{ userLink(c) }</li>)
-                case _ => <li>No contributors. Was this project authored by a ghost?</li>
+                case Some(cs) =>
+                  cs.map(c => <li>{ userLink(c) }</li>)
+                case _ =>
+                  <li>No contributors. Was this project authored by a ghost?</li>
               } }
               </ul>
-            </p>
-            <p>{ homeLink }</p>
-          </div>
-        </div>,
+            </div>
+          </div>,
+        content = <ul>{ libMarkup }</ul>,
         title = "ls %s/%s" format(user, repo)
       )("jquery.clippy.min", "versions")()
     }

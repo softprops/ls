@@ -34,7 +34,7 @@ $ ->
         pagination = ['<div class="pagination">']
         if page > 1
           pagination.push("<a href='javascript:void(0)' class='page' data-term='#{term}' data-page='#{page-1}'>less</a>")
-        if libs.length > perPage
+        if (libs.length > perPage and page is 1) or (libs.length is perPage + 2 and page > 2)
           pagination.push("<a href='javascript:void(0)' class='page' data-term='#{term}' data-page='#{page+1}'>more</a>")
         pagination.push("</div>")
         newrows = $("<div data-page='#{page}' class='clearfix'>#{rows.join('')}</div>")
@@ -42,7 +42,7 @@ $ ->
 
         $("#libraries .control").html(pagination.join(''))
       else
-        why = if term then "matching #{term}" else "found"
+        why = if term then "matching <span class='term'>#{term}</span>" else "found"
         $("#libraries .content").html(
           "<div class='none-found'>No published libraries #{why}. Maybe you should start one.</div>"
           )
