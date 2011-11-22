@@ -59,14 +59,14 @@ $ ->
       ls.libraries pg, perPage+1, display(pg)
     false
 
-  $("#libraries .content").addClass("spin")
+  #$("#libraries .content").addClass("spin")
 
   if window.location.hash.length and window.location.hash not in ['#publishing', '#finding', '#installing', '#uris']
     term = window.location.hash.substring(1)
     $("#q").val(term)
     ls.search term, 1, perPage+1, display(1, term)
-  else
-    ls.libraries 1, perPage+1, display(1)
+  #else
+    #ls.libraries 1, perPage+1, display(1)
 
   # search box
   # we don't want to issue a query after every since key up event
@@ -87,3 +87,6 @@ $ ->
 
   $("#q").keydown (e) ->
     clearTimeout(typeTimeout)
+
+  $("#q").focus (e) ->
+    $("#libraries").show('slow')

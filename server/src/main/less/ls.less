@@ -1,5 +1,30 @@
 html, body, div, span, applet, object, iframe,html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td,article,aside,canvas,details,embed,figure,figcaption,footer,header,hgroup,menu,nav,output,ruby,section,summary,time,mark,audio,video{margin:0;padding:0;border:0;font-size:100%;font:inherit;vertical-align:baseline}article,aside,details,figcaption,figure,footer,header,hgroup,menu,nav,section{display:block}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}table{border-collapse:collapse;border-spacing:0}
 
+
+.block {
+  text-align: center;
+}
+
+/* The ghost, nudged to maintain perfect centering */
+.block:before {
+  content: '';
+  display: inline-block;
+  height: 100%;
+  vertical-align: middle;
+  margin-right: -0.25em; /* Adjusts for spacing */
+}
+
+/* The element to be centered, can
+   also be of any width and height */
+.vcentered {
+  display: inline-block;
+  vertical-align: middle;
+}
+
+#search-content {
+  width:100%;
+}
+
 .clearfix {
   zoom: 1;
   &:before,
@@ -162,6 +187,7 @@ p {
     .centered;
   }
   #libraries {
+    display:none;
     .content {
       min-height:300px;
       max-height:300px;
@@ -248,6 +274,9 @@ p {
 }
 
 .author-extra {
+  .rounded;
+  padding:.5em;
+  border:1px solid #eee;
   .num {
     font-size: 160%;
     font-weight:bold;

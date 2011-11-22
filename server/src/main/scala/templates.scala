@@ -183,18 +183,18 @@ object Templates {
     )(scripts:_*)(sheets:_*)
 
   val index = layout(
-    <div id="index">
-      <div>
+    <div id="index" class="block">
+      <div id="search-content" class="vcentered">
         <h1><a href="/"><span class="ls">ls</span><span class="dot">.</span>implicit.ly</a></h1>
         <h2>
           a card calalog for
             <a href="https://scala-lang.org" target="_blank">scala</a> libraries
         </h2>
-      </div>
       <form><input type="search" autocomplete="off" id="q" name="q" /></form>
       <div id="libraries">
         <div class="content"></div>
         <div class="control"></div>
+      </div>
       </div>
     </div>
   )("index")()

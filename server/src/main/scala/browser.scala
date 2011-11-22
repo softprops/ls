@@ -31,7 +31,7 @@ object Browser extends Logged {
           </h1>
          <div class="head-extra author-extra">
             <h2 class="contributes">
-              contributes to <span>{ if(count==0) "no" else <span class="num">{ count }</span> }</span> libraries on <a target="_blank" href={ "https://github.com/%s/" format user }>Github</a>
+              contributes to <span>{ if(count==0) "no" else <span class="num">{ count }</span> }</span> libraries on <a target="_blank" href={ "https://github.com/%s/" format user }>Github</a> including
             </h2>
           </div>
         ,
