@@ -22,7 +22,7 @@ html, body, div, span, applet, object, iframe,html,body,div,span,applet,object,i
 }
 
 #search-content {
-  width:100%;
+
 }
 
 .clearfix {
@@ -179,12 +179,21 @@ p {
   }
 }
 
+.contained {
+  width:@container-width;
+  margin:0 auto;
+}
+
 #index {
+
   form {
    .centered;
   }
   h1, h2 {
     .centered;
+  }
+  h2 {
+    line-height:1em;
   }
   #libraries {
     display:none;
@@ -230,6 +239,8 @@ p {
 }
 
 #libraries {
+  //width: @container-width;
+  margin:0 auto;
   padding-top:1.25em;
   .latest {
     color: @light-color;
@@ -237,19 +248,19 @@ p {
 }
 
 #container {
-  .clearfix;
+  //.clearfix;
   text-align:left;
-  width:@container-width;
+  //width:@container-width;
   margin:1em auto;
 }
 
 #content {
   clear:both;
+  .contained;
 }
 
 #foot {
-  width:@container-width;
-  margin:0 auto;
+  .contained;
   clear:both;
   padding:1em 0;
   p, ul, ol, li {
@@ -265,7 +276,8 @@ p {
 
 .head-extra {
   .clearfix;
-  margin: .5em 0;
+  width:@container-width;
+  margin: .5em auto;
   background:#464646;
   color:@background-color;
   a:link, a:visited {
@@ -281,6 +293,10 @@ p {
     font-size: 160%;
     font-weight:bold;
   }
+}
+
+.project-name, .author-name {
+  .contained;
 }
 
 .project-extra {

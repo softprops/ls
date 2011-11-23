@@ -27,14 +27,13 @@ object Browser extends Logged {
       main(
         header =
           <h1 class="author-name">
-            <a href={ "/%s" format user }>{ user }</a>
+            <span class="at">@</span><a href={ "/%s" format user }>{ user }</a>
           </h1>
          <div class="head-extra author-extra">
             <h2 class="contributes">
               contributes to <span>{ if(count==0) "no" else <span class="num">{ count }</span> }</span> libraries on <a target="_blank" href={ "https://github.com/%s/" format user }>Github</a> including
             </h2>
-          </div>
-        ,
+          </div>,
         content = <div>
           <ul class="libraries">{ libsMarkup }</ul>
         </div>,
