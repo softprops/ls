@@ -61,7 +61,7 @@ $ ->
     false
 
   # bootstrap search if fragment is present
-  if window.location.hash.length and window.location.hash not in ['#publishing', '#finding', '#installing', '#uris']
+  if window.location.hash.length and window.location.hash not in ['#publishing', '#finding', '#installing', '#uris', '#ls-issues']
     term = window.location.hash.substring(1)
     $("#q").val(term)
     $('#libraries').show 'slow'

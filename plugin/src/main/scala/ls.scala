@@ -290,13 +290,13 @@ object Plugin extends sbt.Plugin with Requesting {
     usage in lskey <<= (streams) map {
       (out) =>
         out.log.info("""
-        |Usage: ls [-l] [terms...]
+        |Usage: ls [-n] [terms...]
         |  
         |Examples
         |  # find a library named unfiltered
-        |  ls -l unfiltered 
+        |  ls -n unfiltered
         |  # find a library named unfiltered at version of 0.5.1
-        |  ls -l unfiltered@0.5.1
+        |  ls -n unfiltered@0.5.1
         |  # find libraries taged with terms web or http
         |  ls web http
         """.stripMargin)
@@ -307,9 +307,9 @@ object Plugin extends sbt.Plugin with Requesting {
           val log = out.log
           args match {
             case Seq() => sys.error(
-              "Please provide at least one or more search keywords or -l <name of library>"
+              "Please provide at least one or more search keywords or -n <name of library>"
             )
-            case Seq("-l", name) =>
+            case Seq("-n", name) =>
               val cli = Client(host)
               def named(name: String) = name.split("@") match {
                 case Array(name) => cli.lib(name)_

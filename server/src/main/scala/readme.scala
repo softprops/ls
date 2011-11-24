@@ -5,22 +5,23 @@ object Readme {
     <div id="read">
       <div id="publishing">
         <h1><a href="/#publishing">publishing</a></h1>
-        <h2>ls makes two assumptions about your Scala libraries</h2>
+        <h2>The best of two worlds</h2>
         <p>
+         <code>ls</code> assumes two things about your library
           <ul>
-            <li>1) Your library source is hosted on <a href="https://github.com">Github</a></li>
+            <li>1) Its source is opensource and hosted on <a href="https://github.com">Github</a></li>
             <li>2) You build your projects with <a href="https://github.com/harrah/xsbt/wiki" target="_blank">sbt</a>*</li>
           </ul>
           * 2 is not required, but highly recommended.
         </p>
         <p>
-          ls learns about your library through a process called <code>lsyncing</code>, which synchronizes with build information hosted on Github. Because only privileged parties may commit to these repositories, ls is not concerned with who is requesting an lsync—that is, authentication—but with the controlled project metadata on Github.
+          <code>ls</code> learns about your library through a process called <code>lsyncing</code>, which synchronizes <code>ls</code> with build information hosted on Github. Because only privileged parties may commit to these repositories, <code>ls</code> is not concerned with who is requesting an <code>lsync</code>—that is, authentication—but with the controlled project metadata on Github.
       </p>
-      <h2 id="lsync-spec">Lsync spec format</h2>
+      <h2 id="lsync-spec">lsync syncs library versions</h2>
       <p>
-        ls stores semi-structured information about your library's build in a json encoded file for each published version of your library. It is encouraged to only lsync build info about released versions.
+        <code>ls</code> stores semi-structured information about each published version of your library's build in a json encoded file within your repository source tree. It is encouraged to only <code>lsync</code> build info about released versions.
       </p>
-      <p>The following is a description of the format that ls uses to capture library information.
+      <p>The following is a description of the format that <code>ls</code> uses to capture version snapshots of library information.
       <pre><code>{{
  <span class="comment"># a maven/ivy organization identifier</span>
  <span class="key">"organization"</span>:"org.yourdomain",
@@ -58,47 +59,47 @@ object Readme {
  <span class="key">"sbt"</span>: false
 }}</code></pre>
       <p>To perform an <code>lsync</code> for a given project, simply perform the following HTTP <code>POST</code></p>
-      <pre><code>curl -X POST http://ls.implicit.ly/api/libraries 
+      <pre><code>curl -X POST http://ls.implicit.ly/api/1/libraries 
   -F="<span class="key">user</span>=your-gh-user"
   -F="<span class="key">repo</span>=your-gh-repo"
   -F="<span class="key">version</span>=version-to-sync"</code></pre>
-     This will tell ls to extract any files in the <code>github.com/your-gh-user/your-gh-repo</code> repository for files matching <code>src/main/ls/version-to-sync.json</code> and store the libraries metadata.
+     This will tell <code>ls</code> to extract any files in the <code>github.com/your-gh-user/your-gh-repo</code> repository for files matching <code>src/main/ls/version-to-sync.json</code> and store the libraries metadata.
       </p>
       <p>
-        No wants you to hand copy that for every library you write. That's what plugins are for.
+        No wants you to hand copy that for every library you write. That's what plugins are for!
       </p>
       <h2>Say hello to ls-sbt</h2>
-      <p>To install a convenient ls client, install the following <a href="https://github.com/n8han/conscript">conscript</a></p>
+      <p>To install a convenient <code>ls</code> client, install the following <a href="https://github.com/n8han/conscript">conscript</a> locally</p>
       <pre><code>$ cs softprops/ls</code></pre>
       <p>Then in the root of your project run</p>
       <pre><code>$ lsinit</code></pre>
-      <p>With the plugin installed to your project, you can generate version info automatically from its sbt build.</p>
+      <p>With the <code>ls-sbt</code> plugin installed to your project, you can generate version info automatically from its sbt build.</p>
       <pre><code>sbt> ls-write-version</code></pre>
       <p>Add or edit the generated file under <code>src/main/ls/:version.json</code> to fit your liking before commiting to git and pushing to your Github remote.</p>
-      <p>When you are ready to sync your libraries build info with ls, do the following</p>
+      <p>When you are ready to sync your library's build info with <code>ls</code>, do the following</p>
       <pre><code>sbt> lsync</code></pre>
-      <p>That's it! Free free to go ahead and start banging out the next awesome version of your library now.</p>
+      <p>That's it! Feel free to go ahead and start banging out the next awesome version of your library now.</p>
     </div>
 
     <div id="finding">
       <h1><a href="#finding">Thumbing through</a></h1>
-      <p>There are lot of libraries out there, waiting to make your life easier.</p>
-      <p>ls aims to make finding Scala libraries as simple as it possibly can be by adding some vocabulary to your sbt shell.</p>
-      <p>To find a library by name use <code>ls -l</code></p>
-      <pre><code>sbt> ls -l unfiltered</code></pre>
+      <p>There are lot of scala libraries out there, waiting to make your life easier.</p>
+      <p><code>ls</code> aims to make finding Scala libraries as simple as it possibly can be by adding some vocabulary to your sbt shell.</p>
+      <p>To find a library by name use <code>ls -n</code></p>
+      <pre><code>sbt> ls -n unfiltered</code></pre>
       <p>This command will find any ls-published library named <code>unfiltered</code>, listing recent versions with descriptions</p>
       <p>What if you are looking for a specific version? Just add <code>@version</code> to your query</p>
-      <pre><code>sbt> ls -l unfiltered@0.5.1</code></pre>
+      <pre><code>sbt> ls -n unfiltered@0.5.1</code></pre>
       <p>What if you don't know the name of the library you are looking for? Try searcing by tags and see what pops up.</p>
       <pre><code>sbt> ls web netty</code></pre>
       <p>Tags help categorize libraries and make them easier for users to find.</p>
     </div>
 
-    <div id="installing">
+ <div id="installing">
        <h1><a href="installing">Checking the fit</a></h1>
        <p>Once you find the library you are looking for, you have a few options. You can hand edit a configuration file, paste in the info you had to previous search for or you could do</p>
        <pre><code>sbt> ls-try unfiltered</code></pre>
-       <p>This will temporarily add the latest version of unfiltered to your library chain. Try <code>console-quick</code> to play with the library in the repl. If you don't like it you can always remove it with the sbt built-in command <code>session clear</code> or by reloading your project. If you do find the library that fits you need, it's just as easy to install it.
+       <p>This will temporarily add the latest version of unfiltered to your library dependency chain. Try typing <code>console-quick</code> to play with the library in the repl. If you don't like it, you can always remove it with the sbt built-in command <code>session clear</code> or by reloading your project. If you do find the library that fits you need, it's just as easy to install it.
        </p>
        <pre><code>sbt> ls-install unfiltered</code></pre>
        <p>The same syntax for specifying a specific version applies</p>
@@ -106,14 +107,18 @@ object Readme {
     </div>
     <div id="uris">
       <h1><a href="#uris">You or I</a></h1>
-      <p>Because of the open nature of Github, a forked repository can coexist with another of the same name under a different user's account. Libraries is ls are just references to <code>uris</code>. More specifically a uri for Github repository, a library name, and version.</p>
-      <pre><code>sbt> ls -l library@0.5.0 user/repo</code></pre>
+      <p>Because of the open nature of Github, a forked repository easily can coexist with another of the same name under a different user's account. Libraries is <code>ls</code> are just references to <code>uris</code>. More specifically a uri for Github repository, a library name, and version.</p>
+      <pre><code>sbt> ls -n library@0.5.0 user/repo</code></pre>
       <p>
-        By default <code>try</code> and <code>install</code> will always use the latest version of a library by name using an inferred uri.
+        By default, <code>try</code> and <code>install</code> will always use the latest version of a library by name using an inferred uri.
       </p>
       <p>
-        It is not recommended to lsync version information across repos. Doing so may decrease the likelihood of your users finding the right library. In the case a library author has lsync'd across repositories, ls will prompt you for the repo you wish to use.
+        It is not recommended to <code>lsync</code> version information across repos. Doing so may decrease the likelihood of your users finding the right version of the library. In the case a library author has lsync'd across repositories, ls will prompt you for the repo you wish to use.
       </p>
+    </div>
+    <div id="ls-issues">
+      <h1><a href="#ls-issues">Issues</a></h1>
+      <p><code>ls</code> makes a handful of assumptions about your libraries and build environments. It's quite possible some of these assumptions are flawed. If you find one, <a href="https://github.com/softprops/ls/issues" target="_blank">let me know</a>.</p>
     </div>
   </div>
 }
