@@ -219,6 +219,14 @@ p {
       width: @container-width / 3.2;
       li {
         margin-bottom:1em;
+        padding:.25em;
+        &:hover {
+          .rounded;
+          background:#eee;
+          .t {
+            color: darken(@light-color, 20%);
+          }
+        }
         h3 {
           font-weight:bold;
         }
@@ -279,9 +287,14 @@ p {
   width:@container-width;
   margin: .5em auto;
   background:#464646;
+  background:#47CBFF;
   color:@background-color;
   a:link, a:visited {
-    text-shadow:0 1px #000;
+    text-shadow:none;
+    color:#fff;
+  }
+  a:hover {
+    color:#FF4791;
   }
 }
 
