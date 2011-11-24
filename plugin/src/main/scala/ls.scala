@@ -160,10 +160,20 @@ object Plugin extends sbt.Plugin with Requesting {
             )
           }
 
+          // todo: refactorize
+          // what's going on below is simply building up a pipeline of of settings
+          // to ship off to sbt's to eval facitlity, then reload and optional save
+          // the settings in the project's .sbt build definition
+          val extracted = Project extract state
+		      import extracted._
+          import BuiltinCommands.{imports, reapply, DefaultBootCommands}
+		      import CommandSupport.{DefaultsCommand, InitCommand}
+
           // one or more lines consisting of libraryDependency and resolvers
           // lhs is (plugin config, plugin instruct) | rhs is library config
           val lines: Either[(Seq[String], String), Seq[String]] = if(ls.size > 1) {
-            sys.error("More than one libraries were resolved. Try prefixing the library name with :user/:repo/:library-name to disambiguate.")
+            sys.error("""More than one libraries were resolved.
+                      | Try prefixing the library name with :user/:repo/:library-name to disambiguate.""".stripMargin)
           } else {
             val l = ls(0)
             (version match {
@@ -188,6 +198,9 @@ object Plugin extends sbt.Plugin with Requesting {
                   Left((allLines, PluginSupport.help(l, v, allLines)))                  
                 } else {
                   println("Discovered library %s@%s" format(l.name, v.version))
+
+                  Conflicts.detect(extracted.get(sbt.Keys.libraryDependencies), l, v)
+
                   val depLine = ("""libraryDependencies += "%s" %%%% "%s" %% "%s"%s""" format(
                     l.organization, l.name, v.version, config match {
                       case Some(c) => """ %% "%s" """.format(c)
@@ -215,19 +228,15 @@ object Plugin extends sbt.Plugin with Requesting {
             }
           }
 
-          // todo: refactorize
-          // whats going on below is simply building up a pipeline of of settings
-          // to ship off to sbt to eval, reload and optional save
-          val extracted = Project extract state
-		      import extracted._
-          import BuiltinCommands.{imports, reapply, DefaultBootCommands}
-		      import CommandSupport.{DefaultsCommand, InitCommand}
-
           lines.fold({
+            // currently, we do not support plugin installation.
+            // when we do, that magic should happen here
             case (pinLines, help) =>
               println(help)
               state
           }, { libLines =>
+            // eval the first line to obtain
+            // a starting point for a fold
             val (first, rest) = (libLines.head, libLines.tail)        
 		        val settings = EvaluateConfigurations.evaluateSetting(
               session.currentEval(), "<set>", imports(extracted), first, 0
@@ -236,7 +245,8 @@ object Plugin extends sbt.Plugin with Requesting {
               Load.projectScope(currentRef), currentRef.build, rootProject, settings
             )
 		        val newSession = session.appendSettings( append map (a => (a, first)))
-
+            // fold over lines to build up a new setting including all
+            // setting appendings
             val (_, _, newestSession) = ((settings, append, newSession) /: rest)((a, line) => a match {
               case (set, app, ses) =>
                 val settings = EvaluateConfigurations.evaluateSetting(
@@ -257,6 +267,9 @@ object Plugin extends sbt.Plugin with Requesting {
         } catch {
           case dispatch.StatusCode(404, msg) => sys.error(
             "Library not found %s" format msg
+          )
+          case Conflicts.Conflict(_, _, _, msg) => sys.error(
+            msg
           )
         }
       case LibraryParser.Fail => sys.error(
