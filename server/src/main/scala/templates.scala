@@ -21,7 +21,7 @@ object Templates {
   def site(url: String) =
     url match {
       case "" => ""
-      case ok => <a href={ ok } target="_blank">Project page</a>
+      case ok => <a href={ ok } target="_blank">Project Home</a>
     }
 
   def fullLibraryVersions = libraryVersions(true)_
@@ -229,7 +229,7 @@ object Templates {
           <div>
             <a href="#publishing">Publish your library</a> &bull; <a target="_blank" href="https://github.com/inbox/new?to=softprops">Contact your librarian</a>
           </div>
-        </div>
+        </div> { Readme.body }
        <script type="text/javascript" src="/js/ls.js"></script>
        <script type="text/javascript" src="/js/time.js"></script>
        { scripts.map { s => <script type="text/javascript" src={"/js/%s.js" format s } /> } }
