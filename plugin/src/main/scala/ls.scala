@@ -302,7 +302,7 @@ object Plugin extends sbt.Plugin with Requesting {
                 case Array(name, version) => cli.lib(name, version = Some(version))_
               }
               try {
-                log.info("Fetching library %s" format name)
+                log.info("Fetching library info for %s" format name)
                 libraries(
                   inClassLoader(classOf[LibraryVersions]) {
                     parse[Seq[LibraryVersions]](http(named(name)(None)(None) as_str))
@@ -314,7 +314,7 @@ object Plugin extends sbt.Plugin with Requesting {
             case kwords =>
               val cli = Client(host)
               try {
-                log.info("Fetching libraries matching %s" format kwords.mkString(", "))
+                log.info("Fetching library info matching %s" format kwords.mkString(", "))
                 libraries(
                   inClassLoader(classOf[LibraryVersions]) {
                     parse[Seq[LibraryVersions]](http(cli.search(kwords.toSeq) as_str))
