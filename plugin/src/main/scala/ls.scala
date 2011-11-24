@@ -72,8 +72,9 @@ object Plugin extends sbt.Plugin with Requesting {
           case (Some(user), Some(repo)) =>
             out.log.info("lsyncing project %s/%s@%s..." format(user, repo, vers))
             try {
+              // todo: should this by an async server request?
               http(Client(host).lsync(user, repo, vers) as_str)
-              out.log.info("project was synchronized")
+              out.log.info("Project was synchronized")
             } catch {
               case e =>
                 out.log.warn("Error synchronizing project libraries %s" format e.getMessage)
@@ -306,7 +307,7 @@ object Plugin extends sbt.Plugin with Requesting {
           val log = out.log
           args match {
             case Seq() => sys.error(
-              "Please provide at lease one or more search keywords or -l <name of library>"
+              "Please provide at least one or more search keywords or -l <name of library>"
             )
             case Seq("-l", name) =>
               val cli = Client(host)
@@ -337,7 +338,7 @@ object Plugin extends sbt.Plugin with Requesting {
                 )
               } catch {
                 case StatusCode(404, msg) =>
-                  log.info("library not found for keywords %s" format kwords.mkString(", "))
+                  log.info("Library not found for keywords %s" format kwords.mkString(", "))
               }
           }
       }
