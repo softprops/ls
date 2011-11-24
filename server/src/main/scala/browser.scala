@@ -27,7 +27,7 @@ object Browser extends Logged {
       main(
         header =
           <h1 class="author-name">
-            <span class="at">@</span><a href={ "/%s" format user }>{ user }</a>
+            <a href="/"><span class="ls">ls</span></a> <span class="sl">/</span> <a href={ "/%s" format user }>{ user }</a>
           </h1>
          <div class="head-extra author-extra">
             <h2 class="contributes">
@@ -37,7 +37,7 @@ object Browser extends Logged {
         content = <div>
           <ul class="libraries">{ libsMarkup }</ul>
         </div>,
-        title = "ls /%s" format user
+        title = "ls / %s" format user
       )("jquery.clippy.min", "versions")()
     }
 
@@ -50,7 +50,7 @@ object Browser extends Logged {
       main(
         header =
           <h1 class="project-name">
-            <a href={"/%s/%s/" format(user, repo)}>{ repo }</a>
+            <a href="/"><span class="ls">ls</span></a> <span class="sl">/</span> <a href={"/%s/%s/" format(user, repo)}>{ repo }</a>
           </h1>
           <div class="head-extra project-extra">
             on <a target="_blank" href={"https://github.com/%s/%s/" format(user, repo)}>Github</a> with contributions from
@@ -66,7 +66,7 @@ object Browser extends Logged {
             </div>
           </div>,
         content = <ul>{ libMarkup }</ul>,
-        title = "ls %s/%s" format(user, repo)
+        title = "ls / %s / %s" format(user, repo)
       )("jquery.clippy.min", "versions")()
     }
   }
