@@ -1,7 +1,6 @@
 ## Initial release
 
-An sbt plugin to interface a new close cousin of [implict.ly][imply], [ls.implicit.y][site], a effort to create a community sourced
-catalog of discoverable and easily installable scala libraries. 
+An sbt plugin to interface a new close cousin of [implict.ly][imply], [ls.implicit.y][site], an effort to create a community sourced catalog of discoverable and easily installable scala libraries. 
 
 ### How does it work?
 
