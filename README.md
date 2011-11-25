@@ -1,4 +1,4 @@
-# ls.implicit.ly
+# [ls.implicit.ly](http://ls.implicit.ly/)
 
 a card calalog for scala libraries
 
