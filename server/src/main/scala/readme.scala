@@ -19,6 +19,7 @@ object Readme {
       </p>
       <h2 id="lsync-spec">lsync syncs library versions</h2>
       <p>
+        So what are you actually publishing? Information.
         <code>ls</code> stores semi-structured information about each published version of your library's build in a json encoded file within your repository source tree. It is encouraged to only <code>lsync</code> build info about released versions.
       </p>
       <p>The following is a description of the format that <code>ls</code> uses to capture version snapshots of library information.
@@ -36,7 +37,7 @@ object Readme {
  <span class="comment"># keywords to help others to find your library</span>
  <span class="key">"tags"</span>: ["awesome", "opossum"],
  <span class="comment"># a uri for version-specific api docs</span>
- <span class="key">"docs"</span>:"https://yourdomain.org/awesome-library-docs",
+ <span class="key">"docs"</span>:"http://yourdomain.org/awesome-library-docs",
  <span class="comment"># licenses if you care for them</span>
  <span class="key">"licenses"</span>: [{{
    "name": "MIT",
@@ -58,6 +59,7 @@ object Readme {
  <span class="comment"># is this an sbt plugin?</span>
  <span class="key">"sbt"</span>: false
 }}</code></pre>
+
       <p>To perform an <code>lsync</code> for a given project, simply perform the following HTTP <code>POST</code></p>
       <pre><code>curl -X POST http://ls.implicit.ly/api/1/libraries 
   -F="<span class="key">user</span>=your-gh-user"
@@ -79,6 +81,8 @@ object Readme {
       <p>When you are ready to sync your library's build info with <code>ls</code>, do the following</p>
       <pre><code>sbt> lsync</code></pre>
       <p>That's it! Feel free to go ahead and start banging out the next awesome version of your library now.</p>
+       <h2>A note on sbt plugins</h2>
+      <p>Authors of sbt plugins my <code>lsync</code> their library information with <code>ls</code> for others to find their plugins but <code>ls-install</code> and <code>ls-try</code> do not currently support installing plugins. This will probably change soon.</p>
     </div>
 
     <div id="finding">
