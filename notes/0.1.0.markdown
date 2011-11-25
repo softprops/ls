@@ -1,0 +1,86 @@
+## Initial release
+
+An sbt plugin to interface a new close cousin of [implict.ly][imply], [ls.implicit.y][site], a effort to create a community sourced
+catalog of discoverable and easily installable scala libraries. 
+
+### How does it work?
+
+There is a lot of useful information encoded within your sbt projects right now.
+
+Unfortuanlly to access it someone has to:
+
+- already have your library installed
+- enjoy hunting it down in source code
+- enjoy hunting it down in (hopefully) well written documentation
+
+Nonsense!
+
+[ls][site] is a service for synchronizing that information from github and making it discoverable via an api.
+
+[ls-sbt][gh] is a client for that service that operates from within sbt.
+
+### How do you get started?
+
+[ls-sbt][gh] is a plugin. So you have to install it first
+
+You can either append to your `build.sbt` file
+
+    addSbtPlugin("me.lessis" % "ls-sbt" % "0.1.0")
+    
+    resolvers ++= Seq(
+      "lessis" at "http://repo.lessis.me",
+      "coda" at "http://repo.codahale.com"  
+    )
+
+or just use the convenient conscript provided
+
+    # install the conscript
+    $ cs softprops/ls
+    
+    # run the conscript app in the root of your project
+    $ lsinit
+
+The conscript is recommended, as it will always install the [latest version of ls-sbt](http://ls.implicit.ly/api/1/latest/ls-sbt).
+    
+Next, mix in `lsSettings` to your build definition
+
+    seq(lsSettings: _*)
+
+Checkout the [docs on the site][pub] for more information.
+
+
+### How do you use it?
+
+The following is a brief list of common tasks and commands `lsSettings` adds to your project
+
+    ls-write-version  # writes our the descriptor that ls synchronizes information with
+    lsync             # once you've commited your versions metadata to github, syncronize it with ls using this command (no auth required)
+    ls <term> <term>  # searches for ls-synced scala libraries based on keywords 
+    ls-try <name>     # transiently installs a library by name
+    ls-install <name> # persists an installation of a library by name
+    
+Examples
+
+    # find libraries tagged with sbt
+    ls sbt
+
+    # install the latest version of unfiltered
+    ls-install unfiltered
+    
+    # install a target version of unfiltered
+    ls-install unfiltered@0.5.1
+    
+### I am looking at you
+
+In order to actually make this service useful, just like [implicit.ly][imply], you have to actively sync your library info with ls.
+
+### Questions? Issues?
+
+[Let me know about them][issues]
+
+[issues]: https://github.com/softprops/ls/issues
+[ls]: http://implicit.ly/
+[gh]: https://github.com/softprops/ls
+[site]: http://ls.implicit.ly/
+[imply]: http://implicit.ly/
+[pub]: http://ls.implicit.ly/#publishing
