@@ -124,7 +124,7 @@ object Templates {
 
  // fixme: not very robust all all
  def resolver(name: String, uri: String) = 
-    "\n\nresolvers += \"%s\" at \"%s\"".format(name, uri)
+    "\nresolvers += \"%s\" at \"%s\"".format(name, uri)
 
  def sbtDefaultResolver(s: String) =
    s.contains("http://repo1.maven.org/maven2/") ||
