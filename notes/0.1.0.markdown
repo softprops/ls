@@ -23,7 +23,7 @@ Nonsense!
 
 [ls-sbt][gh] is a plugin. So you have to install it first
 
-You can either append to your `build.sbt` file
+You can either append to your `project/plugins.sbt` file
 
     addSbtPlugin("me.lessis" % "ls-sbt" % "0.1.0")
     
@@ -40,7 +40,7 @@ or just use the convenient conscript provided
     # run the conscript app in the root of your project
     $ lsinit
 
-The conscript is recommended, as it will always install the [latest version of ls-sbt](http://ls.implicit.ly/api/1/latest/ls-sbt).
+The conscript usage is recommended, as it will always install the [latest version of ls-sbt](http://ls.implicit.ly/api/1/latest/ls-sbt).
     
 Next, mix in `lsSettings` to your build definition
 
