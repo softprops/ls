@@ -94,7 +94,7 @@ object Readme {
       <pre><code>sbt> lsync</code></pre>
       <p>That's it! Feel free to go ahead and start banging out the next awesome version of your library now.</p>
        <h2>A note on sbt plugins</h2>
-      <p>Authors of sbt plugins my <code>lsync</code> their library information with <code>ls</code> for others to find their plugins but <code>ls-install</code> and <code>ls-try</code> do not currently support installing plugins. This will probably change soon.</p>
+      <p>Authors of sbt plugins may <code>lsync</code> their library information with <code>ls</code> for others to find their plugins but <code>ls-install</code> and <code>ls-try</code> do not currently support installing plugins. This will probably change soon.</p>
     </div>
 
     <div id="finding">
