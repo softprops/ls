@@ -115,7 +115,7 @@ object Readme {
        <h1><a href="installing">Checking the fit</a></h1>
        <p>Once you find the library you are looking for, you have a few options. You can hand edit a configuration file, paste in the info you had to previous search for or you could do</p>
        <pre><code>sbt> ls-try unfiltered</code></pre>
-       <p>This will temporarily add the latest version of unfiltered to your library dependency chain. Try typing <code>console-quick</code> to play with the library in the repl. If you don't like it, you can always remove it with the sbt built-in command <code>session clear</code> or by reloading your project. If you do find the library that fits you need, it's just as easy to install it.
+       <p>This will temporarily add the latest version of unfiltered to your library dependency chain. Try typing <code>console-quick</code> to play with the library in the repl. If you don't like it, you can always remove it with the sbt built-in command <code>session clear</code> or by reloading your project. If a library fits your need, it's just as easy to install it.
        </p>
        <pre><code>sbt> ls-install unfiltered</code></pre>
        <p>The same syntax for specifying a specific version applies</p>
@@ -123,7 +123,7 @@ object Readme {
     </div>
     <div id="uris">
       <h1><a href="#uris">You or I</a></h1>
-      <p>Because of the open nature of Github, a forked repository easily can coexist with another of the same name under a different user's account. Libraries is <code>ls</code> are just references to <code>uris</code>. More specifically a uri for Github repository, a library name, and version.</p>
+      <p>Because of the open nature of Github, a forked repository easily can coexist with another of the same name under a different user's account. Libraries in <code>ls</code> are just references to <code>uris</code>. More specifically a uri for Github repository, a library name, and version.</p>
       <pre><code>sbt> ls -n library@0.5.0 user/repo</code></pre>
       <p>
         By default, <code>try</code> and <code>install</code> will always use the latest version of a library by name using an inferred uri.
