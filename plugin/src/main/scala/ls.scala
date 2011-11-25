@@ -369,12 +369,12 @@ object Plugin extends sbt.Plugin with Requesting {
     dependencyFilter := { m =>
       !(scalaLib(m) || testDependency(m))
     },
-    docsUrl := None,
-    tags := Nil,
+    docsUrl in lsync := None,
+    tags in lsync := Nil,
     description in lsync <<= (description in Runtime),
     homepage in lsync <<= (homepage in Runtime),
-    optionals <<= (description in lsync, homepage in lsync, tags,
-                   docsUrl, licenses in lsync)(
+    optionals <<= (description in lsync, homepage in lsync, tags in lsync,
+                   docsUrl in lsync, licenses in lsync)(
       (desc, homepage, tags, docs, lics) =>
         Optionals(desc, homepage, tags, docs, lics.map {
           case (name, url) => License(name, url.toString)
