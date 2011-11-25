@@ -65,7 +65,7 @@ object Readme {
   -F="<span class="key">user</span>=your-gh-user"
   -F="<span class="key">repo</span>=your-gh-repo"
   -F="<span class="key">version</span>=version-to-sync"</code></pre>
-     This will tell <code>ls</code> to extract any files in the <code>github.com/your-gh-user/your-gh-repo</code> repository for files matching <code>src/main/ls/version-to-sync.json</code> and store the libraries metadata.
+     This will tell <code>ls</code> to extract any files in the <code>github.com/your-gh-user/your-gh-repo</code> repository for files matching <code>src/main/ls/version-to-sync.json</code> and store the library's metadata.
       </p>
       <p>
         No wants you to hand copy that for every library you write. That's what plugins are for!
