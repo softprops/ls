@@ -4,6 +4,7 @@ import Keys._
 object Build extends sbt.Build {
   import coffeescript.Plugin._
   import less.Plugin._
+  import ls.Plugin._
   //import heroic.Plugin._
 
   object Resolvers {
@@ -55,6 +56,17 @@ object Build extends sbt.Build {
         "net.databinder" %% "dispatch-http" % dispatchVersion
       ),
       resolvers += Resolvers.coda
+    ) ++ lsSettings ++ Seq(
+      description in LsKeys.lsync := "An sbt interface for ls.implicit.ly",
+      LsKeys.tags in LsKeys.lsync := Seq("ls", "plugin", "sbt"),
+      externalResolvers in LsKeys.lsync := Seq(
+        "less is" at "http://repo.lessis.me",
+        "coda" at "http://repo.codahale.com"
+      ),
+      homepage in LsKeys.lsync := Some(url("http://ls.implicit.ly/")),
+      licenses in LsKeys.lsync := Seq(
+        ("MIT", url("https://github.com/softprops/ls/blob/master/LICENSE"))
+      )
     )) dependsOn(lib)
 
   lazy val app = Project("app", file("app"),
