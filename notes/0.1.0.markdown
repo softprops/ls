@@ -32,7 +32,7 @@ You can either append to your `project/plugins.sbt` file
       "coda" at "http://repo.codahale.com"  
     )
 
-or just use the convenient conscript provided
+or just use the convenient [conscript](https://github.com/n8han/conscript#readme) provided
 
     # install the conscript
     $ cs softprops/ls
