@@ -53,7 +53,8 @@ object Build extends sbt.Build {
       name := "ls-sbt",
       libraryDependencies ++= Seq(
         "com.codahale" %% "jerkson" % "0.5.0",
-        "net.databinder" %% "dispatch-http" % dispatchVersion
+        "net.databinder" %% "dispatch-http" % dispatchVersion,
+        "me.lessis" %% "ls" % "0.1.0"
       ),
       resolvers += Resolvers.coda
     ) ++ lsSettings ++ Seq(
@@ -67,7 +68,8 @@ object Build extends sbt.Build {
       licenses in LsKeys.lsync := Seq(
         ("MIT", url("https://github.com/softprops/ls/blob/master/LICENSE"))
       )
-    )) dependsOn(lib)
+    ))/* dependsOn(lib) here will not work in sbt as it generates pom with a sources classifier,
+      references to class with in at that point result in class not found exceptions */
 
   lazy val app = Project("app", file("app"),
     settings = buildSettings ++ 
