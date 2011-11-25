@@ -87,6 +87,12 @@ $ ->
   $("#q").keydown (e) ->
     clearTimeout typeTimeout
 
+  $("#q-form").live 'submit', (e) ->
+    e.preventDefault()
+    clearTimeout typeTimeout
+    search
+    false
+
   $("#q").focus (e) ->
     $("#libraries").show 'slow', (e) ->
       if $(window).width() < 940

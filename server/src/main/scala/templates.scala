@@ -190,7 +190,7 @@ object Templates {
           a card calalog for
             <a href="https://scala-lang.org" target="_blank">scala</a> libraries
         </h2>
-      <form><input type="search" autocomplete="off" id="q" name="q" /></form>
+      <form id="q-form"><input type="search" autocomplete="off" id="q" name="q" /></form>
       <div id="libraries">
         <div class="content"></div>
         <div class="control"></div>
