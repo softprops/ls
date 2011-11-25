@@ -1,12 +1,14 @@
 ## Initial release
 
-An sbt plugin to interface a new close cousin of [implict.ly][imply], [ls.implicit.y][site], an effort to create a community sourced catalog of discoverable and easily installable scala libraries. 
+An sbt plugin to interface a new close cousin of [implict.ly][imply], [ls.implicit.y][site], an effort to create a community sourced catalog of discoverable and easily installable scala libraries.
+
+What is `ls`? For the lazy, check out this [screen cast](http://www.screenr.com/EIus). (It may take a few to load. You get what you pay for with screenr :))
 
 ### How does it work?
 
-There is a lot of useful information encoded within your sbt projects right now.
+There is a lot of useful information tucked within your sbt projects.
 
-Unfortuanlly to access it someone has to:
+Unfortuanlly to access it, someone has to:
 
 - already have your library installed
 - enjoy hunting it down in source code
@@ -20,9 +22,9 @@ Nonsense!
 
 ### How do you get started?
 
-[ls-sbt][gh] is a plugin. So you have to install it first
+[ls-sbt][gh] is a plugin. So you have to install it first.
 
-You can either append to your `project/plugins.sbt` file
+You can either append the following to your `project/plugins.sbt` file
 
     addSbtPlugin("me.lessis" % "ls-sbt" % "0.1.0")
     
@@ -31,7 +33,7 @@ You can either append to your `project/plugins.sbt` file
       "coda" at "http://repo.codahale.com"  
     )
 
-or just use the convenient [conscript](https://github.com/n8han/conscript#readme) provided
+or just use the uber-convenient [conscript](https://github.com/n8han/conscript#readme) provided
 
     # install the conscript
     $ cs softprops/ls
@@ -45,14 +47,14 @@ Next, mix in `lsSettings` to your build definition
 
     seq(lsSettings: _*)
 
-Checkout the [docs on the site][pub] for more information.
+Check out the [docs on the site][pub] for more information and configuration options.
 
 
 ### How do you use it?
 
 The following is a brief list of common tasks and commands `lsSettings` adds to your project
 
-    ls-write-version  # writes our the descriptor that ls synchronizes information with
+    ls-write-version  # writes out the library version descriptor that ls synchronizes information with
     lsync             # once you've commited your versions metadata to github, syncronize it with ls using this command (no auth required)
     ls <term> <term>  # searches for ls-synced scala libraries based on keywords 
     ls-try <name>     # transiently installs a library by name
@@ -73,9 +75,14 @@ Examples
 
 In order to actually make this service useful, just like [implicit.ly][imply], you have to actively sync your library info with ls.
 
-### Questions? Issues?
+### Questions? Issues? Ideas??
 
 [Let me know about them][issues]
+
+Before you ask, "Why doesn't `ls.implicit.ly` do X, Y, and Z?", I'll answer with, it's intent is to only do a few things and do few things well. Do you want `grep` to create a short url of its results and auto post to twitter? No. Then it wouldn't be grep.
+
+The main idea behind this project is to start bringing together the scala community library authors and sourcing together
+useful information that will make the the lives of library users better and hopefully grow the community as a result.
 
 [issues]: https://github.com/softprops/ls/issues
 [ls]: http://implicit.ly/
