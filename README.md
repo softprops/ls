@@ -2,6 +2,8 @@
 
 a card calalog for scala libraries
 
+For a quick overview, [see this screencast](http://www.screenr.com/EIus)
+
 ## install
 
 ### Via [conscript](https://github.com/softprops/ls/blob/master/notes/0.1.0.markdown)
