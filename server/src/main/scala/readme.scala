@@ -76,6 +76,18 @@ object Readme {
       <p>Then in the root of your project run</p>
       <pre><code>$ lsinit</code></pre>
       <p>With the <code>ls-sbt</code> plugin installed to your project, you can generate version info automatically from its sbt build.</p>
+      <p>A few customization settings you may want so set are</p>
+      <pre><code>seq(lsSettings:_*)
+
+(LsKeys.tags in LsKeys.lsync) := Seq("futures", "async-awesome")
+
+(externalResolvers in LsKeys.lsync) := Seq(
+  "my own resolver" at "http://repo.myhost.io")
+
+(description in LsKeys.lsync) :=
+  "One futures library to rule them all."
+</code></pre>
+      <p>You can easily generate the json file mentioned above with the following task.</p>
       <pre><code>sbt> ls-write-version</code></pre>
       <p>Add or edit the generated file under <code>src/main/ls/:version.json</code> to fit your liking before commiting to git and pushing to your Github remote.</p>
       <p>When you are ready to sync your library's build info with <code>ls</code>, do the following</p>
