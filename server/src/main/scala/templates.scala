@@ -146,7 +146,7 @@ object Templates {
 
   def installSbtPluginText(mid: ModuleID, resolvers: Seq[String],
                            scalaVersions: Seq[String]) =
-    "addSbtPlugin(\"%s\" %% \"%s\" %% \"%s\") %s\n".format(
+    "addSbtPlugin(\"%s\" %% \"%s\" %% \"%s\") %s\n\n".format(
       mid.organization, mid.name, mid.version, 
       (resolvers.filterNot(sbtDefaultResolver).zipWithIndex.map {
         case (r, i) => resolver("%s-resolver-%s".format(mid.name, i), r) }
