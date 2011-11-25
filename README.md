@@ -31,7 +31,7 @@ See the [site](http://ls.implicit.ly/#publishing)
 
 ## Issues
 
-[blame me](http://ls.implicit.ly/#publishing)
+[blame me](https://github.com/softprops/ls/issues)
 
 
 Doug Tangren (softprops) 2011
