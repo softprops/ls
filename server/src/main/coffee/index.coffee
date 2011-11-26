@@ -12,14 +12,17 @@ $ ->
     buf
 
   li = (l) ->
-    "<li>
+    "<li class='lib-small-info'>
       <h3>
         <a class='lib-link' href='/#{l.ghuser}/#{l.ghrepo}\##{l.name}'>#{l.name}<span class='at'>@</span><span class='v'>#{l.versions[0].version}</span></a>
       </h3>
       <div>#{l.description}</div>
       <div class='t'>#{Time.agoInWords(l.updated)}</div>
      </li>"
-
+     
+  $('li.lib-small-info').live 'click', (e) ->
+    $(location).attr 'href', $(e.currentTarget).find('a').attr('href')
+    
   perPage = 9
 
   display = (page, term) ->
