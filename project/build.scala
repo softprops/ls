@@ -57,7 +57,7 @@ object Build extends sbt.Build {
         "me.lessis" %% "ls" % "0.1.0"
       ),
       resolvers += Resolvers.coda
-    ) /*++ lsSettings ++ Seq(
+    ) ++ ScriptedPlugin.scriptedSettings /*++ lsSettings ++ Seq(
       description in LsKeys.lsync := "An sbt interface for ls.implicit.ly",
       LsKeys.tags in LsKeys.lsync := Seq("ls", "plugin", "sbt"),
       externalResolvers in LsKeys.lsync := Seq(
