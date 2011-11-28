@@ -1,0 +1,12 @@
+> ls-write-version
+
+$ absent src/main/ls/0.1.0.json
+
+$ exists a/src/main/ls/0.1.0.json
+> contents a/src/main/ls/0.1.0.json fixtures/a/0.1.0.json
+
+$ exists b/src/main/ls/0.1.0.json
+> contents b/src/main/ls/0.1.0.json fixtures/b/0.1.0.json
+
+$ exists c/src/main/ls/0.1.0.json
+> contents c/src/main/ls/0.1.0.json fixtures/c/0.1.0.json
