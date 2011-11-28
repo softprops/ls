@@ -1,0 +1,1 @@
+fixed default for `licenses` key [#25](https://github.com/softprops/ls/issues/25)
