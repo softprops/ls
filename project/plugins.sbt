@@ -11,6 +11,6 @@ addSbtPlugin("me.lessis" % "less-sbt" % "0.1.3")
 
 //addSbtPlugin("me.lessis" % "heroic" % "0.1.0-SNAPSHOT")
 
-addSbtPlugin("net.databinder" % "conscript-plugin" % "0.3.2")
+addSbtPlugin("net.databinder" % "conscript-plugin" % "0.3.3")
 
 libraryDependencies <+= sbtVersion("org.scala-tools.sbt" %% "scripted-plugin" % _)
