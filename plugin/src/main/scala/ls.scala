@@ -383,7 +383,7 @@ object Plugin extends sbt.Plugin with Requesting {
     ),
     skipWrite := false,
     externalResolvers in lsync := Seq(ScalaToolsReleases),
-    licenses in lsync <<= licenses in GlobalScope,
+    licenses in lsync <<= licenses in Runtime,
     versionInfo <<=
       (organization,
        name,
