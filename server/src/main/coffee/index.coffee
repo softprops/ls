@@ -19,10 +19,10 @@ $ ->
       <div>#{l.description}</div>
       <div class='t'>#{Time.agoInWords(l.updated)}</div>
      </li>"
-     
+
   $('li.lib-small-info').live 'click', (e) ->
     $(location).attr 'href', $(e.currentTarget).find('a').attr('href')
-    
+
   perPage = 9
 
   display = (page, term) ->
@@ -37,7 +37,7 @@ $ ->
         pagination = ['<div class="pagination">']
         if page > 1
           pagination.push("<a href='javascript:void(0)' class='page' data-term='#{term}' data-page='#{page-1}'>less</a>")
-        if (libs.length > perPage and page is 1) or (libs.length is perPage + 2 and page > 2)
+        if (libs.length > perPage and page is 1) or (libs.length is perPage + 2 and page > 1)
           pagination.push("<a href='javascript:void(0)' class='page' data-term='#{term}' data-page='#{page+1}'>more</a>")
         pagination.push("</div>")
         newrows = $("<div data-page='#{page}' class='clearfix'>#{rows.join('')}</div>")
