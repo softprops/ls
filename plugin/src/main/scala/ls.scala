@@ -398,11 +398,11 @@ object Plugin extends sbt.Plugin with Requesting {
           VersionInfo(o, n, v, opts, rsvrs, ldeps.filter(dfilter), pi, csv)
        },
     writeVersion <<= writeVersionTask,
-    ghUser := (maybeRepo match {
+    ghUser := (Git.ghRepo match {
       case Some((user, _)) => Some(user)
       case _ => None
     }),
-    ghRepo := (maybeRepo match {
+    ghRepo := (Git.ghRepo match {
       case Some((_, repo)) => Some(repo)
       case _ => None
     }),
@@ -442,17 +442,4 @@ object Plugin extends sbt.Plugin with Requesting {
     }
     if(libs.isEmpty) log.info("(no projects matching the terms %s)" format terms.mkString(" "))
   }
-
-  object GhRepo {
-    val GHRemote = """^git@github.com[:](\S+)/(\S+)[.]git$""".r
-    def unapply(line: String) = line.split("""\s+""") match {
-      case Array(_, GHRemote(user, repo), _) => Some(user, repo)
-      case _ => None
-    } 
-  }
-
-  def maybeRepo: Option[(String, String)] =
-    Process("git remote -v").lines_!(ProcessLogging.silent).collectFirst {
-      case GhRepo(user, repo) => (user, repo)
-    }
 }
