@@ -1,1 +1,2 @@
 fixed default for `licenses` key [#25](https://github.com/softprops/ls/issues/25)
+lsync should be able to resolve ls metadata on arbitrary branches, not just `master` [#36](https://github.com/softprops/ls/issues/36) and [#37](https://github.com/softprops/ls/issues/37)
