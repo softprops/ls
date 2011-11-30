@@ -43,6 +43,7 @@ object Plugin extends sbt.Plugin with Requesting {
     // github
     val ghUser = SettingKey[Option[String]](key("gh-user"), "Github user name")
     val ghRepo = SettingKey[Option[String]](key("gh-repo"), "Github repository name")
+    val ghBranch = SettingKey[Option[String]](key("gh-branch"), "Github branch name")
 
     // syncing
     val versionInfo = TaskKey[VersionInfo](key("version-info"), "Information about a version of a project")
@@ -66,14 +67,14 @@ object Plugin extends sbt.Plugin with Requesting {
   val DefaultLsHost = "http://ls.implicit.ly"
 
   private def lsyncTask: Initialize[Task[Unit]] =
-    (streams, ghUser, ghRepo, version in lsync, host in lsync) map {
-      (out, maybeUser, maybeRepo, vers, host) =>
+    (streams, ghUser in lsync, ghRepo in lsync, ghBranch in lsync, version in lsync, host in lsync) map {
+      (out, maybeUser, maybeRepo, branch, vers, host) =>
         (maybeUser, maybeRepo) match {
           case (Some(user), Some(repo)) =>
             out.log.info("lsyncing project %s/%s@%s..." format(user, repo, vers))
             try {
               // todo: should this by an async server request?
-              http(Client(host).lsync(user, repo, vers) as_str)
+              http(Client(host).lsync(user, repo, branch.getOrElse("master"), vers) as_str)
               out.log.info("Project was synchronized")
             } catch {
               case e =>
@@ -398,14 +399,15 @@ object Plugin extends sbt.Plugin with Requesting {
           VersionInfo(o, n, v, opts, rsvrs, ldeps.filter(dfilter), pi, csv)
        },
     writeVersion <<= writeVersionTask,
-    ghUser := (Git.ghRepo match {
+    ghUser in lsync := (Git.ghRepo match {
       case Some((user, _)) => Some(user)
       case _ => None
     }),
-    ghRepo := (Git.ghRepo match {
+    ghRepo in lsync := (Git.ghRepo match {
       case Some((_, repo)) => Some(repo)
       case _ => None
     }),
+    ghBranch in lsync := Git.branch.orElse(Some("master")),
     lsync <<= lsyncTask,
     (aggregate in lsync) := false
   )

@@ -10,11 +10,23 @@ object Git {
     } 
   }
 
+  val CurrentBranch = """^([*]\S+)(.*)$""".r
+
   lazy val cli =
     sys.props.get("os.name")
       .filter(_.toLowerCase.contains("windows"))
       .map(_ => "git.exe")
       .getOrElse("git")
+
+  def branch: Option[String] =
+    try {
+      sbt.Process("%s branch" format Git.cli)
+        .lines_!(ProcessLogging.silent).collectFirst {
+          case CurrentBranch(_, br) => br
+        }
+    } catch {
+      case _ => None
+    }
 
   def ghRepo: Option[(String, String)] =
     try {

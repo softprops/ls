@@ -23,10 +23,11 @@ case class Client(host: String) {
     user: Option[String])(repo: Option[String]) =
       api / "libraries" / name /? version /? user /? repo
   /** Syncronize ls server with gihub library version info */
-  def lsync(user: String, repo: String, vers: String) =
+  def lsync(user: String, repo: String, branch: String, vers: String) =
     (api.POST / "libraries") << Map(
       "user" -> user,
       "repo" -> repo,
+      "branch" -> branch,
       "version" -> vers
     )
   def search(kwords: Seq[String]) = 

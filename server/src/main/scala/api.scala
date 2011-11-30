@@ -47,17 +47,18 @@ object Api extends Logged {
   }
 
   /** Synchronizes ls libraries with libraries on github.
-   *  If projects are resolved, but malformed not persistence is made.
-   *  Otherwise all project info is stored for later retrival */
+   *  If projects are resolved but malformed, no persistence is made.
+   *  Otherwise all project info is stored for later retrieval */
   def sync: Cycle.Intent[Any, Any] = {
     case POST(Path(Seg("api" :: "1" :: "libraries" :: Nil)) & Params(p)) =>
       val expect = for {
          user <- lookup("user") is required("missing")
          repo <- lookup("repo") is required("missing")
+         branch <- lookup("branch") is optional[String, String]
          version <- lookup("version") is required("missing")
       } yield {
-        log.info("synchronizing %s/%s/%s" format(user.get, repo.get, version.get))
-        Github.extract(user get, repo get, version get) match {
+        log.info("synchronizing %s/%s/%s/%s" format(user.get, repo.get, branch.get.getOrElse("master"), version.get))
+        Github.extract(user get, repo get, (branch get).getOrElse("master"), version get) match {
           case (e@Seq(_), Seq(libraries)) =>
             log.info("Some errors (%s), but some success(es)" format e)
             BadRequest ~> ResponseString(e map(_.msg) mkString(", "))
@@ -69,7 +70,7 @@ object Api extends Logged {
           case (_, libraries) =>
             log.info("Resolved %d projects" format libraries.size)
             Libraries.save(libraries map(_.copy(ghuser = user, ghrepo = repo)))
-            Created ~> Redirect("/")
+            Created
           case _ => BadRequest
         }
       }

@@ -32,8 +32,8 @@ object Github extends ManagedHttp with Logged {
   private val TreeOpts = Map("recursive" -> "1")
 
   /** Extract all libraries from a repo turning a seq of Either[Error, Lib] to (Seq[Error], Seq[Lib]) */
-  def extract(user: String, repo: String, version: String): (Seq[Error], Seq[Library]) =
-    ((Seq.empty[Error], Seq.empty[Library]) /: any(user, repo, version)) ((a, e) => a match {
+  def extract(user: String, repo: String, branch: String, version: String): (Seq[Error], Seq[Library]) =
+    ((Seq.empty[Error], Seq.empty[Library]) /: any(user, repo, branch, version)) ((a, e) => a match {
         case (l, r) => (e.left.toSeq ++ l, e.right.toSeq ++ r)
      })
 
@@ -91,10 +91,10 @@ object Github extends ManagedHttp with Logged {
       case _ => log.warn("%s not found" format sha);Left(NotFound)
     }
 
-  /** Extract all libraries from a repo */
-  private def any(user: String, repo: String, version: String): Seq[Either[Error, Library]] =
+  /** Extract all libraries from a repo on a given branch */
+  private def any(user: String, repo: String, branch: String, version: String): Seq[Either[Error, Library]] =
     allCatch.opt {
-      http(repos.secure / user / repo / "git" / "trees" / "master" <<? TreeOpts >> { in =>
+      http(repos.secure / user / repo / "git" / "trees" / branch <<? TreeOpts >> { in =>
         parse[Tree](in).tree.filter(_.path.matches(Target.format(version))) match {
           case Nil       => Left(NotFound) :: Nil
           case l :: Nil  => lib(user, repo, l.sha) :: Nil
