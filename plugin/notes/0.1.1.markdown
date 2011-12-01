@@ -1,2 +1,3 @@
-- fixed default for `licenses` key [#25](https://github.com/softprops/ls/issues/25)
-- lsync should be able to resolve ls metadata on arbitrary branches, not just `master` [#36](https://github.com/softprops/ls/issues/36) and [#37](https://github.com/softprops/ls/issues/37)
+- Fixed default for `licenses` key [#25](https://github.com/softprops/ls/issues/25)
+- `lsync` should be able to resolve `ls` metadata on arbitrary git branches on github, not just `master` [#36](https://github.com/softprops/ls/issues/36) and [#37](https://github.com/softprops/ls/issues/37)
+- Added new setting, `ls-docs`, launches library documentation in a browser. Takes preference to a versions docs, then a libraries homepage, and finally falls back on the github repository page of the project. [#30](https://github.com/softprops/ls/issues/30)
