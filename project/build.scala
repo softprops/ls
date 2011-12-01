@@ -33,7 +33,7 @@ object Build extends sbt.Build {
       libraryDependencies ++= Seq(
         "com.codahale" %% "jerkson" % "0.5.0",
         "net.databinder" %% "dispatch-http" % dispatchVersion,
-        "net.databinder" %% "unfiltered-netty-server" % "0.5.0",
+        "net.databinder" %% "unfiltered-netty-server" % "0.5.1",
         "com.mongodb.casbah" %% "casbah" % "2.1.5-1"
       )) ++ coffeeSettings ++ lessSettings ++ HeroShim.shimSettings ++ /* heroicSettings ++ */
          Seq(
