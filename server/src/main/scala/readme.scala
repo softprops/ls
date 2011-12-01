@@ -61,10 +61,8 @@ object Readme {
 }}</code></pre>
 
       <p>To perform an <code>lsync</code> for a given project, simply perform the following HTTP <code>POST</code></p>
-      <pre><code>curl -X POST http://ls.implicit.ly/api/1/libraries 
-  -F="<span class="key">user</span>=your-gh-user"
-  -F="<span class="key">repo</span>=your-gh-repo"
-  -F="<span class="key">version</span>=version-to-sync"</code></pre>
+      <pre><code>curl -X POST http://ls.implicit.ly/api/1/libraries -d '<span class="key">user</span>=your-gh-user&amp;<span class="key">repo</span>=your-gh-repo&amp;<span class="key">version</span>=version-to-sync'</code></pre>
+
      This will tell <code>ls</code> to extract any files in the <code>github.com/your-gh-user/your-gh-repo</code> repository for files matching <code>src/main/ls/version-to-sync.json</code> and store the library's metadata.
       </p>
       <p>
@@ -109,6 +107,9 @@ object Readme {
       <p>What if you don't know the name of the library you are looking for? Try searcing by tags and see what pops up.</p>
       <pre><code>sbt> ls web netty</code></pre>
       <p>Tags help categorize libraries and make them easier for users to find.</p>
+      <p>For convenience, <code>ls</code> provides a task for launching a library's docs in your browser</p>
+      <pre><code>sbt> ls-docs unfiltered@0.5.2</code></pre>
+      <p>The task above will fetch the docs for unfiltered at version 0.5.2 and open them in a browser. You can also use this command without specifying the library version and <code>ls</code> will automatically choose the latest version of the library's docs. Library authors are encouraged to bind <code>(LsKeys.docsUrl in LsKeys.lsync)</code> to the library's generated scala docs. If that is not available <code>ls-docs</code> will fallback on <code>(homepage in LsKeys.lsync)</code> and finally the Github repository page for the project if neither of those are available.</p>
     </div>
 
  <div id="installing">
