@@ -60,6 +60,7 @@ object Plugin extends sbt.Plugin with Requesting {
 
     // discovery
     val ls = InputKey[Unit]("ls", "Search for remote libraries")
+    val lsDocs = InputKey[Unit](key("docs"), "Launch library documentation")
 
     private def key(name: String) = "ls-%s" format name
   }
@@ -302,6 +303,37 @@ object Plugin extends sbt.Plugin with Requesting {
         |  ls web http
         """.stripMargin)
     },
+    lsDocs <<= inputTask { (argsTask: TaskKey[Seq[String]]) =>
+      (argsTask, streams, host in lskey, colors in lskey, state) map {
+        case (args, out, host, color, state) =>
+          val log = out.log
+          args match {
+            case Seq(name) =>
+              val cli = Client(host)
+              def named(name: String) = name.split("@") match {
+                case Array(name) => cli.lib(name)_
+                case Array(name, version) => cli.lib(name, version = Some(version))_
+              }
+              try {
+                log.info("Fetching library docs for %s" format name)
+                def version(name: String) = name.split("@") match {
+                  case Array(_) => None
+                  case Array(_, version) => Some(version)
+                }
+                docsFor(
+                  inClassLoader(classOf[LibraryVersions]) {
+                    parse[Seq[LibraryVersions]](http(named(name)(None)(None) as_str))
+                  }, version(name), log)
+              } catch {
+                case StatusCode(404, msg) =>
+                  out.log.info("`%s` library not found" format name)
+              }
+            case _ => sys.error(
+              "Please provide a name and optionally a version of the library you want docs for in the form ls-docs <name> or ls-docs <name>@<version>"
+            )
+          }
+        }
+    },
     lskey <<= inputTask { (argsTask: TaskKey[Seq[String]]) =>
       (argsTask, streams, host in lskey, colors in lskey, state) map {
         case (args, out, host, color, state) =>
@@ -345,20 +377,9 @@ object Plugin extends sbt.Plugin with Requesting {
       }
     },
     (aggregate in lskey) := false,
+    (aggregate in lsDocs) := false,
     commands ++= Seq(lsTry, lsInstall)
   )
-
-  /* https://github.com/harrah/xsbt/wiki/Configurations */
-  def testDependency(m: sbt.ModuleID) =
-    m.configurations match {
-      case Some(conf) => conf.trim.toLowerCase.startsWith("test")
-      case _ => false
-    }
-
-  def scalaLib(m: sbt.ModuleID) =
-    m.organization.trim.toLowerCase.equals(
-      "org.scala-lang"
-    )
 
   def lsPublishSettings: Seq[Setting[_]] = Seq(
     host in lsync := DefaultLsHost,
@@ -414,7 +435,59 @@ object Plugin extends sbt.Plugin with Requesting {
 
   def lsSettings: Seq[Setting[_]] = lsSearchSettings ++ lsPublishSettings
 
-  def libraries(libs: Seq[LibraryVersions], log: sbt.Logger, colors: Boolean, terms: String*) = {
+  /** Preforms a `best-attempt` at retrieving a uri for library documentation before
+   *  attempting to launch it */
+  private def docsFor(libs: Seq[LibraryVersions], targetVersion: Option[String], log: sbt.Logger) =
+    libs match {
+      case Seq() => log.info("Library not found")
+      case Seq(lib) =>
+        (targetVersion match {
+          case Some(v) => lib.versions.find(_.version == v)
+          case _ => lib.versions.headOption
+        }) match {
+          case Some(vers) =>
+            (vers.docs match {
+              case s if(!s.isEmpty) => Some(s)
+              case _ => lib.site match {
+                case s if(!s.isEmpty) => Some(s)
+                case _ => ((lib.ghuser, lib.ghrepo)) match {
+                  case (Some(u), Some(r)) => Some("https://github.com/%s/%s/" format(
+                    u, r
+                  ))
+                  case _ => None
+                }
+              }
+            }) match {
+              case Some(d) => launch(d) match {
+                case Some(err) => log.warn("Unable to launch docs %s" format d)
+                case _ => ()
+              }
+              case _ => log.info("No docs available for %s@%s" format(
+                lib.name, vers.version
+              ))
+            }
+          case _ => log.info("No docs available for %s" format lib.name)
+        }
+      case _ => log.info("More than one library found, try to narrow your search")
+    }
+
+  /** Attempts to launch the provided uri */
+  private def launch(uri: String) =
+    uri match {
+      case u if(!u.isEmpty) =>
+        try {
+          import java.net.URI
+          val dsk = Class.forName("java.awt.Desktop")
+          dsk.getMethod("browse", classOf[URI]).invoke(
+            dsk.getMethod("getDesktop").invoke(null), new URI(u)
+          )
+          None
+        } catch { case e => Some(e) }
+      case empty => None
+    }
+
+
+  private def libraries(libs: Seq[LibraryVersions], log: sbt.Logger, colors: Boolean, terms: String*) = {
     val tups = libs.map(l => (l.name, l.versions.map(_.version).mkString(", "), l.description))
     val len = math.max(tups.map{ case (n, vs, _ ) => "%s (%s)".format(n, vs).size }.sortWith(_>_).head, 10)
     val fmt = "%s %-" + len + "s # %s"
@@ -444,4 +517,17 @@ object Plugin extends sbt.Plugin with Requesting {
     }
     if(libs.isEmpty) log.info("(no projects matching the terms %s)" format terms.mkString(" "))
   }
+
+  /* https://github.com/harrah/xsbt/wiki/Configurations */
+  private def testDependency(m: sbt.ModuleID) =
+    m.configurations match {
+      case Some(conf) => conf.trim.toLowerCase.startsWith("test")
+      case _ => false
+    }
+
+  private def scalaLib(m: sbt.ModuleID) =
+    m.organization.trim.toLowerCase.equals(
+      "org.scala-lang"
+    )
+
 }
