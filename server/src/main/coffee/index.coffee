@@ -100,6 +100,9 @@ $ ->
     $("#libraries").show 'slow', (e) ->
       if $(window).width() < 940
         $('#index').removeClass 'block'
+      help = $('<h1 id="find-help">What can I help you find?</h1>').hide()
+      $('#libraries .content').html help
+      help.fadeIn 'slow'
 
   # vertical centering comes at a cost
   layout = () ->
