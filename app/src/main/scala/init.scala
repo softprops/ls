@@ -1,8 +1,10 @@
 package ls
 
+import org.apache.http.conn.{ HttpHostConnectException => ConnectionRefused }
 import java.io.{File,FileWriter}
 
 object LsInit {
+
   def main(args: Array[String]) {
     val exit = run(args)
     System.exit(exit)
@@ -10,12 +12,19 @@ object LsInit {
   def run(args: Array[String]): Int = {
     val base = new File(args.headOption.getOrElse("."))
     val result = if (base.isDirectory) {
-      lsVersion match {
+      lsVersion.fold({ _ match {
+        case cf: ConnectionRefused => Left(
+          "ls is currently not available to take your call"
+        )
+        case uh: java.net.UnknownHostException => Left(
+          "You may not know your host as well as you think. Your http client doesn't know %s" format uh.getMessage
+        )
+        case e => Left("unexpected http error %s" format e.getMessage)
+      } }, { _ match {
         case Some(version) =>
           setup(base, version)
-        case None =>
-          Left("Unable to retrive current ls version")
-      }
+        case None => Left("Could not resolve ls's current version")
+      } })
     } else {
       Left("Directory not found: " + base.getCanonicalPath)
     }
@@ -26,16 +35,16 @@ object LsInit {
   }
   def lsVersion = {
     import dispatch._
-    val req = :/("ls.implicit.ly") / "api" / "1" / "latest" / "ls-sbt"
+    val req = :/("ls.implicit.lyy") / "api" / "1" / "latest" / "ls-sbt"
     val http = new Http with NoLogging
     try {
-      http(req >- { js =>
+      Right(http(req >- { js =>
         scala.util.parsing.json.JSON.parseFull(js).map {
           _.asInstanceOf[Map[String,Any]]("version").toString
         }
-      })
+      }))
     } catch {
-      case e => Some(e.getMessage)
+      case e => Left(e)
     } finally {
       http.shutdown()
     }
