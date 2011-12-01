@@ -2,4 +2,9 @@
 - `lsync` should be able to resolve `ls` metadata on arbitrary git branches on github, not just `master` [#36](https://github.com/softprops/ls/issues/36) and [#37](https://github.com/softprops/ls/issues/37)
 - Added new setting, `ls-docs`, launches library documentation in a browser. Takes preference to a versions docs, then a libraries homepage, and finally falls back on the github repository page of the project. [#30](https://github.com/softprops/ls/issues/30)
 - The previous settings are now scoped to `LsKeys.lsync`: `LsKeys.ghUser`, `LsKeys.ghBranch`
+- Handle http errors in the `lsinit` [conscript]() more gracefully [#27](https://github.com/softprops/ls/issues/27)
+
+To install, use `cs --clean-boot && cs softprops/ls`
+
 - published for sbt 0.11.0 and 0.11.2 (if you are on 0.11.1 you should think about switching to 0.11.2 now)
+
