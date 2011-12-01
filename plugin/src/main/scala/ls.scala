@@ -27,6 +27,7 @@ object Plugin extends sbt.Plugin with Requesting {
   import ls.ClassLoaders._
   import scala.collection.JavaConversions._
   import com.codahale.jerkson.Json._
+  import com.codahale.jerkson.ParsingException
   import LsKeys.{ ls => lskey, _ }
   import java.io.File
   import java.net.URL
@@ -271,6 +272,8 @@ object Plugin extends sbt.Plugin with Requesting {
           case dispatch.StatusCode(404, msg) => sys.error(
             "Library not found %s" format msg
           )
+          case p: ParsingException =>
+                  log.info("received unexpected response from `ls`")
           case Conflicts.Conflict(_, _, _, msg) => sys.error(
             msg
           )
@@ -326,7 +329,9 @@ object Plugin extends sbt.Plugin with Requesting {
                   }, version(name), log)
               } catch {
                 case StatusCode(404, msg) =>
-                  out.log.info("`%s` library not found" format name)
+                  log.info("`%s` library not found" format name)
+                case p: ParsingException =>
+                  log.info("received an unexpected response from `ls`")
               }
             case _ => sys.error(
               "Please provide a name and optionally a version of the library you want docs for in the form ls-docs <name> or ls-docs <name>@<version>"
@@ -357,6 +362,8 @@ object Plugin extends sbt.Plugin with Requesting {
               } catch {
                 case StatusCode(404, msg) =>
                   out.log.info("`%s` library not found" format name)
+                case p: ParsingException =>
+                  log.info("received unexpected response from `ls`")
               }
             case kwords =>
               val cli = Client(host)
@@ -372,6 +379,8 @@ object Plugin extends sbt.Plugin with Requesting {
               } catch {
                 case StatusCode(404, msg) =>
                   log.info("Library not found for keywords %s" format kwords.mkString(", "))
+                case p: ParsingException =>
+                  log.info("received unexpected response from `ls`")
               }
           }
       }
