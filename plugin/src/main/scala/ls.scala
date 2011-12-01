@@ -272,8 +272,9 @@ object Plugin extends sbt.Plugin with Requesting {
           case dispatch.StatusCode(404, msg) => sys.error(
             "Library not found %s" format msg
           )
-          case p: ParsingException =>
-                  log.info("received unexpected response from `ls`")
+          case p: ParsingException => sys.error(
+            "received unexpected response from `ls`"
+          )
           case Conflicts.Conflict(_, _, _, msg) => sys.error(
             msg
           )
