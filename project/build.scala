@@ -33,7 +33,7 @@ object Build extends sbt.Build {
       libraryDependencies ++= Seq(
         "com.codahale" %% "jerkson" % "0.5.0",
         "net.databinder" %% "dispatch-http" % dispatchVersion,
-        "net.databinder" %% "unfiltered-netty-server" % "0.5.1",
+        "net.databinder" %% "unfiltered-netty-server" % "0.5.3",
         "com.mongodb.casbah" %% "casbah" % "2.1.5-1"
       )) ++ coffeeSettings ++ lessSettings ++ HeroShim.shimSettings ++ /* heroicSettings ++ */
          Seq(
@@ -53,7 +53,8 @@ object Build extends sbt.Build {
       name := "ls-sbt",
       libraryDependencies ++= Seq(
         "com.codahale" %% "jerkson" % "0.5.0",
-        "net.databinder" %% "dispatch-http" % dispatchVersion
+        "net.databinder" %% "dispatch-http" % dispatchVersion,
+        "me.lessis" %% "ls" % "0.1.1"
       ),
       resolvers += Resolvers.coda
     ) ++ ScriptedPlugin.scriptedSettings ++ lsSettings ++ Seq(
