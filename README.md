@@ -6,7 +6,7 @@ For a quick overview, [see this screencast](http://www.screenr.com/EIus)
 
 ## install
 
-### Via [conscript](https://github.com/softprops/ls/blob/master/notes/0.1.0.markdown)
+### Via [conscript](https://github.com/n8han/conscript#readme)
     $ cs softprops/ls
     $ lsinit
     
