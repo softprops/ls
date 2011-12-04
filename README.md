@@ -14,7 +14,7 @@ For a quick overview, [see this screencast](http://www.screenr.com/EIus)
 
 Edit your `project/plugins.sbt` file
 
-    addSbtPlugin("me.lessis" % "ls-sbt" % "0.1.0")
+    addSbtPlugin("me.lessis" % "ls-sbt" % "0.1.1")
    
     resolvers ++= Seq(
       "less is" at "http://repo.lessis.me",
