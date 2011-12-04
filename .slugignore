@@ -1,1 +1,7 @@
 server/src/test
+src/main/conscript
+plugin/notes
+plugin/src/sbt-test
+README.md
+LICENSE
+tools
