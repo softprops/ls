@@ -57,7 +57,7 @@ object Build extends sbt.Build {
         "me.lessis" %% "ls" % "0.1.1"
       ),
       resolvers += Resolvers.coda
-    ) ++ ScriptedPlugin.scriptedSettings ++ lsSettings ++ Seq(
+    ) ++ ScriptedPlugin.scriptedSettings /* ++ lsSettings ++ Seq(
       description in LsKeys.lsync := "An sbt interface for ls.implicit.ly",
       LsKeys.tags in LsKeys.lsync := Seq("ls", "plugin", "sbt"),
       externalResolvers in LsKeys.lsync := Seq(
@@ -69,7 +69,7 @@ object Build extends sbt.Build {
       licenses in LsKeys.lsync := Seq(
         ("MIT", url("https://github.com/softprops/ls/blob/master/LICENSE"))
       )
-    )) dependsOn(lib) /* here will not work in sbt as it generates pom with a sources classifier,
+    )*/) dependsOn(lib) /* here will not work in sbt as it generates pom with a sources classifier,
       references to class with in at that point result in class not found exceptions. sbt xsbt issue #257 */
 
   lazy val app = Project("app", file("app"),
