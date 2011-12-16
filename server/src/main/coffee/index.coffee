@@ -56,11 +56,12 @@ $ ->
     e.preventDefault()
     link = $(this).data()
     pg = link.page
+    term = link.term
     $("#libraries .content").empty().addClass "spin"
-    if link.term is not "undefined"
-      ls.search link.term, pg, perPage + 1, display(pg, link.term)
-    else
+    if term is "undefined"
       ls.libraries pg, perPage+1, display(pg)
+    else
+      ls.search term, pg, perPage + 1, display(pg, term)
     false
 
   # bootstrap search if fragment is present
