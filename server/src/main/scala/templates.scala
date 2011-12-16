@@ -165,7 +165,7 @@ object Templates {
 
  def installLibraryText(mid: ModuleID, resolvers: Seq[String],
                         scalaVersions: Seq[String]) =
-   "libraryDependencies += \"%s\" %%%% \"%s\" %% \"%s\" %s".format(
+   "libraryDependencies += \"%s\" %%%% \"%s\" %% \"%s\"\n%s".format(
       mid.organization, mid.name, mid.version, 
       (resolvers.filterNot(sbtDefaultResolver).zipWithIndex.map {
         case (r, i) => resolver("%s-resolver-%s".format(mid.name, i), r) }
