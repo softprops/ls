@@ -5,7 +5,7 @@ object Build extends sbt.Build {
   import coffeescript.Plugin._
   import less.Plugin._
   import ls.Plugin._
-  //import heroic.Plugin._
+  import heroic.Plugin._
 
   object Resolvers {
     val coda = "coda" at "http://repo.codahale.com"
@@ -19,7 +19,7 @@ object Build extends sbt.Build {
   val dispatchVersion = "0.8.6"
 
   lazy val root = Project("root", file("."), settings = buildSettings ++ Seq(
-    HeroShim.stage in Compile := {})) aggregate(
+    stage in Compile := {})) aggregate(
     svr, plugin, lib, app
   ) 
 
@@ -35,7 +35,7 @@ object Build extends sbt.Build {
         "net.databinder" %% "dispatch-http" % dispatchVersion,
         "net.databinder" %% "unfiltered-netty-server" % "0.5.3",
         "com.mongodb.casbah" %% "casbah" % "2.1.5-1"
-      )) ++ coffeeSettings ++ lessSettings ++ HeroShim.shimSettings ++ /* heroicSettings ++ */
+      )) ++ coffeeSettings ++ lessSettings ++ heroicSettings ++
          Seq(
            (resourceManaged in (Compile, CoffeeKeys.coffee)) <<= (resourceManaged in Compile) {
              _ / "www" / "js"
@@ -80,11 +80,4 @@ object Build extends sbt.Build {
         "net.databinder" %% "dispatch-http" % dispatchVersion
       )
     ) dependsOn(lib)
-
-  /*lazy val tools = Project("ls-tools", file("tools"),
-      settings = buildSettings ++ Seq(
-        libraryDependencies += "com.mongodb.casbah" %% "casbah" % "2.1.5-1",
-        sbtPlugin := true
-      )) dependsOn(lib)*/
-
 }
