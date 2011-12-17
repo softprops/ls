@@ -24,7 +24,11 @@ object Build extends sbt.Build {
   ) 
 
   lazy val lib = Project("library", file("library"),
-    settings = buildSettings ++ Seq(name := "ls"))
+    settings = buildSettings ++ Seq(
+      libraryDependencies +=
+        "net.databinder" %% "dispatch-http" % dispatchVersion,
+      name := "ls")
+    )
 
   lazy val svr = Project("server", file("server"),
     settings = buildSettings ++ Seq(
@@ -32,7 +36,6 @@ object Build extends sbt.Build {
       scalacOptions += "-deprecation",
       libraryDependencies ++= Seq(
         "com.codahale" %% "jerkson" % "0.5.0",
-        "net.databinder" %% "dispatch-http" % dispatchVersion,
         "net.databinder" %% "unfiltered-netty-server" % "0.5.3",
         "com.mongodb.casbah" %% "casbah" % "2.1.5-1"
       )) ++ coffeeSettings ++ lessSettings ++ heroicSettings ++
@@ -53,7 +56,6 @@ object Build extends sbt.Build {
       name := "ls-sbt",
       libraryDependencies ++= Seq(
         "com.codahale" %% "jerkson" % "0.5.0",
-        "net.databinder" %% "dispatch-http" % dispatchVersion,
         "me.lessis" %% "ls" % "0.1.1"
       ),
       resolvers += Resolvers.coda
@@ -75,9 +77,7 @@ object Build extends sbt.Build {
   lazy val app = Project("app", file("app"),
     settings = buildSettings ++ 
       conscript.Harness.conscriptSettings ++ Seq(
-        name := "ls-app",
-        libraryDependencies += 
-        "net.databinder" %% "dispatch-http" % dispatchVersion
+        name := "ls-app"
       )
     ) dependsOn(lib)
 }

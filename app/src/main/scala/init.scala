@@ -12,7 +12,7 @@ object LsInit {
   def run(args: Array[String]): Int = {
     val base = new File(args.headOption.getOrElse("."))
     val result = if (base.isDirectory) {
-      lsVersion.fold({ _ match {
+      DefaultClient { _.Handler.latest("ls-sbt") }.fold({ _ match {
         case cf: ConnectionRefused => Left(
           "ls is currently not available to take your call"
         )
@@ -32,22 +32,6 @@ object LsInit {
       { err => println(err); 1 },
       { msg => println(msg); 0 }
     )
-  }
-  def lsVersion = {
-    import dispatch._
-    val req = :/("ls.implicit.ly") / "api" / "1" / "latest" / "ls-sbt"
-    val http = new Http with NoLogging
-    try {
-      Right(http(req >- { js =>
-        scala.util.parsing.json.JSON.parseFull(js).map {
-          _.asInstanceOf[Map[String,Any]]("version").toString
-        }
-      }))
-    } catch {
-      case e => Left(e)
-    } finally {
-      http.shutdown()
-    }
   }
   def setup(base: File, version: String) = {
     val build = new File(base, "build.sbt")
