@@ -79,10 +79,11 @@ $ ->
 
   search = () ->
     q = $.trim $("#q").val()
-    $("#libraries .content").empty().addClass "spin"
     if q.length > 2
+      $("#libraries .content").empty().addClass "spin"
       ls.search q, 1, perPage+1, display(1, q)
     else if q.length is 0
+      $("#libraries .content").empty().addClass "spin"
       ls.libraries 1, perPage+1, display(1)
 
   $("#q").keyup (e) ->
