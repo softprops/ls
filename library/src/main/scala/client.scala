@@ -42,27 +42,39 @@ case class Client(host: String) {
     ).flatten
 
   object Handler {
-    def latest(library: String,
-               user: Option[String] = None,
-               repo: Option[String] = None) =
+    def latest(
+      library: String,
+      user: Option[String] = None,
+      repo: Option[String] = None
+    ): Handler[Either[String,String]] =
       Client.this.latest(library, user, repo) >- { js =>
         scala.util.parsing.json.JSON.parseFull(js).map {
           _.asInstanceOf[Map[String,Any]]("version").toString
-        }
+        }.toRight("ls document is missing version property")
       }
   }
 }
 
 object DefaultClient {
   import dispatch._
+  import org.apache.http.conn.HttpHostConnectException
+
   val client = Client("http://ls.implicit.ly/")
   /** Apply the request-response handler and return as Either */
-  def apply[T](f: Client => Handler[T]) = {
+  def apply[T](f: Client => Handler[Either[String,T]]) = {
     val http = new Http with NoLogging
     try {
-      Right(http(f(client)))
+      http(f(client))
     } catch {
-      case e => Left(e)
+      case cf: HttpHostConnectException => Left(
+        "ls is currently not available to take your call"
+      )
+      case uh: java.net.UnknownHostException => Left(
+        "You may not know your host as well as you think. Your http client doesn't know %s" format uh.getMessage
+      )
+      case e => Left(
+        "unexpected http error %s" format e.getMessage
+      )
     } finally {
       http.shutdown()
     }
