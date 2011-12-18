@@ -62,21 +62,19 @@ object DefaultClient {
   val client = Client("http://ls.implicit.ly/")
   /** Apply the request-response handler and return as Either */
   def apply[T](f: Client => Handler[Either[String,T]]) = {
+    import scala.util.control.Exception._
     val http = new Http with NoLogging
-    try {
+    allCatch.andFinally { http.shutdown() }.either {
       http(f(client))
-    } catch {
-      case cf: HttpHostConnectException => Left(
+    }.left.map {
+      case cf: HttpHostConnectException =>
         "ls is currently not available to take your call"
-      )
-      case uh: java.net.UnknownHostException => Left(
+      case uh: java.net.UnknownHostException =>
         "You may not know your host as well as you think. Your http client doesn't know %s" format uh.getMessage
-      )
-      case e => Left(
-        "unexpected http error %s" format e.getMessage
-      )
-    } finally {
-      http.shutdown()
-    }
+      case StatusCode(404, _) =>
+        "Can not find the resource requested (404)"
+      case e =>
+        "Unexpected http error %s" format e.getMessage
+    }.right.flatMap(identity)
   }
 }
