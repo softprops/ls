@@ -5,7 +5,7 @@ object Build extends sbt.Build {
   import coffeescript.Plugin._
   import less.Plugin._
   import ls.Plugin._
-  import heroic.Plugin._
+//  import heroic.Plugin._
 
   object Resolvers {
     val coda = "coda" at "http://repo.codahale.com"
@@ -18,8 +18,8 @@ object Build extends sbt.Build {
   )
   val dispatchVersion = "0.8.6"
 
-  lazy val root = Project("root", file("."), settings = buildSettings ++ Seq(
-    stage in Compile := {})) aggregate(
+  lazy val root = Project("root", file("."), settings = buildSettings /*++ Seq(
+    stage in Compile := {})*/)  aggregate(
     svr, plugin, lib, app
   ) 
 
@@ -38,7 +38,7 @@ object Build extends sbt.Build {
         "com.codahale" %% "jerkson" % "0.5.0",
         "net.databinder" %% "unfiltered-netty-server" % "0.5.3",
         "com.mongodb.casbah" %% "casbah" % "2.1.5-1"
-      )) ++ coffeeSettings ++ lessSettings ++ heroicSettings ++
+      )) ++ coffeeSettings ++ lessSettings ++ // heroicSettings ++
          Seq(
            (resourceManaged in (Compile, CoffeeKeys.coffee)) <<= (resourceManaged in Compile) {
              _ / "www" / "js"
