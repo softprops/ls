@@ -1,3 +1,0 @@
-[submodule "lib/heroic"]
-	path = lib/heroic
-	url = git://github.com/softprops/heroic.git
