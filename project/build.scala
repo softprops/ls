@@ -10,7 +10,7 @@ object Build extends sbt.Build {
 
   val buildSettings = Defaults.defaultSettings ++ Seq(
     organization := "me.lessis",
-    version := "0.1.1",
+    version := "0.1.2-SNAPSHOT",
     publishTo :=  Some(Resolver.file("lessis repo", new java.io.File("/var/www/repo")))
   )
   val dispatchVersion = "0.8.6"
