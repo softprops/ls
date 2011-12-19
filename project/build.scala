@@ -10,9 +10,12 @@ object Build extends sbt.Build {
 
   val buildSettings = Seq(
     organization <<= organization ?? "me.lessis",
-    version <<= version ?? "0.1.2-SNAPSHOT",
-    publishTo <<= publishTo ??
+    version <<= (version, version in GlobalScope){ (v,vg) =>
+      if (v == vg) "0.1.2-SNAPSHOT" else v
+    },
+    publishTo ~= { _.orElse {
       Some(Resolver.file("lessis repo", new java.io.File("/var/www/repo")))
+    }}
   ) ++ Defaults.defaultSettings
 
   val dispatchVersion = "0.8.6"
