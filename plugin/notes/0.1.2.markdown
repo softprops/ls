@@ -1,0 +1,2 @@
+* use a proper json serializer
+* new `ls-lint` task to verify your `src/main/ls/:version.json` file is up to spec

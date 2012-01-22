@@ -47,6 +47,7 @@ object Plugin extends sbt.Plugin with Requesting {
     val ghBranch = SettingKey[Option[String]](key("gh-branch"), "Github branch name")
 
     // syncing
+    val lint        = TaskKey[Boolean](key("lint"), "Verifies the structure of serialized version info") 
     val versionInfo = TaskKey[VersionInfo](key("version-info"), "Information about a version of a project")
     val versionFile = SettingKey[File](key("version-file"), "File storing version descriptor file")
     val writeVersion = TaskKey[Unit](key("write-version"), "Writes version data to descriptor file")
@@ -68,11 +69,36 @@ object Plugin extends sbt.Plugin with Requesting {
 
   val DefaultLsHost = "http://ls.implicit.ly"
 
+  private def lintTask: Initialize[Task[Boolean]] =
+    (streams, versionFile, versionInfo) map {
+      (out, vfile, vinfo) => try {
+        // note: calling #json on version info triggers lazy jerkson serialization
+        vinfo.json
+        if(vfile.exists) {
+          val json = IO.read(vfile)
+          inClassLoader(classOf[Library]) {
+            parse(json)
+          }
+        }
+        out.log.debug("Valid version info")
+        true
+      } catch {
+        case e =>
+          e.printStackTrace
+          out.log.error("Invalid version-info %s. %s" format(
+            e.getMessage, if(vfile.exists) "\n" + IO.read(vfile) else ""
+          ))
+          false
+      }
+    }
+
   private def lsyncTask: Initialize[Task[Unit]] =
-    (streams, ghUser in lsync, ghRepo in lsync, ghBranch in lsync, version in lsync, host in lsync) map {
-      (out, maybeUser, maybeRepo, branch, vers, host) =>
+    (streams, ghUser in lsync, ghRepo in lsync, ghBranch in lsync, version in lsync,
+     host in lsync, versionFile, lint) map {
+      (out, maybeUser, maybeRepo, branch, vers, host, vfile, lint) =>
         (maybeUser, maybeRepo) match {
           case (Some(user), Some(repo)) =>
+            if(lint) {
             out.log.info("lsyncing project %s/%s@%s..." format(user, repo, vers))
             try {
               // todo: should this by an async server request?
@@ -82,6 +108,9 @@ object Plugin extends sbt.Plugin with Requesting {
               case e =>
                 out.log.warn("Error synchronizing project libraries %s" format e.getMessage)
             }
+            } else sys.error("Your version descriptor was invalid. %s" format(
+              IO.read(vfile)
+            ))
           case _ => sys.error("Could not resolve a Github git remote")
         }
     }
@@ -157,11 +186,9 @@ object Plugin extends sbt.Plugin with Requesting {
         try {
           def sbtDefaultResolver(s: String) =
             s.contains("http://repo1.maven.org/maven2/") || s.contains("http://scala-tools.org/repo-releases")
-
+          val resp = http(Client(DefaultLsHost).lib(lib, version)(user)(repo) as_str)
           val ls = inClassLoader(classOf[LibraryVersions]) { 
-            parse[Seq[LibraryVersions]](
-              http(Client(DefaultLsHost).lib(lib, version)(user)(repo) as_str)
-            )
+            parse[Seq[LibraryVersions]](resp)
           }
 
           // todo: refactorize
@@ -324,9 +351,10 @@ object Plugin extends sbt.Plugin with Requesting {
                   case Array(_) => None
                   case Array(_, version) => Some(version)
                 }
+                val resp = http(named(name)(None)(None) as_str)
                 docsFor(
                   inClassLoader(classOf[LibraryVersions]) {
-                    parse[Seq[LibraryVersions]](http(named(name)(None)(None) as_str))
+                    parse[Seq[LibraryVersions]](resp)
                   }, version(name), log)
               } catch {
                 case StatusCode(404, msg) =>
@@ -356,9 +384,10 @@ object Plugin extends sbt.Plugin with Requesting {
               }
               try {
                 log.info("Fetching library info for %s" format name)
+                val resp = http(named(name)(None)(None) as_str)
                 libraries(
                   inClassLoader(classOf[LibraryVersions]) {
-                    parse[Seq[LibraryVersions]](http(named(name)(None)(None) as_str))
+                    parse[Seq[LibraryVersions]](resp)
                   }, log, color, name.split("@"):_*)
               } catch {
                 case StatusCode(404, msg) =>
@@ -370,9 +399,10 @@ object Plugin extends sbt.Plugin with Requesting {
               val cli = Client(host)
               try {
                 log.info("Fetching library info matching %s" format kwords.mkString(", "))
+                val resp = http(cli.search(kwords.toSeq) as_str)
                 libraries(
                   inClassLoader(classOf[LibraryVersions]) {
-                    parse[Seq[LibraryVersions]](http(cli.search(kwords.toSeq) as_str))
+                    parse[Seq[LibraryVersions]](resp)
                   },
                   log, color,
                   args:_*
@@ -429,6 +459,7 @@ object Plugin extends sbt.Plugin with Requesting {
         (o, n, v, opts, rsvrs, ldeps, dfilter, csv, pi) =>
           VersionInfo(o, n, v, opts, rsvrs, ldeps.filter(dfilter), pi, csv)
        },
+    lint <<= lintTask,
     writeVersion <<= writeVersionTask,
     ghUser in lsync := (Git.ghRepo match {
       case Some((user, _)) => Some(user)
