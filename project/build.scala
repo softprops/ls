@@ -36,7 +36,8 @@ object Build extends sbt.Build {
       sbtPlugin := true,
       name := "ls-sbt",
       libraryDependencies ++= Seq(
-        "com.codahale" %% "jerkson" % "0.5.0"
+        "com.codahale" %% "jerkson" % "0.5.0",
+        "me.lessis" %% "pj" % "0.1.0"
       ),
       resolvers += Resolvers.coda
     ) ++ ScriptedPlugin.scriptedSettings /* ++ lsSettings ++ Seq(
