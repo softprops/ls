@@ -1,34 +1,23 @@
 package ls
 
-import sbt.{Resolver, ModuleID => SbtModuleID,
+import sbt.{ Resolver, ModuleID => SbtModuleID,
           MavenRepository, JavaNet1Repository, SshRepository, SftpRepository,
-          FileRepository, URLRepository, ChainedResolver, RawRepository}
+          FileRepository, URLRepository, ChainedResolver, RawRepository }
 import java.net.URL
 
-case class Optionals(description: String, homepage: Option[URL], tags: Seq[String],
-                     docsUrl: Option[URL], licenses: Seq[License])
+case class Optionals(
+  description: String, homepage: Option[URL],
+  tags: Seq[String], docsUrl: Option[URL],
+  licenses: Seq[License])
 
 case class VersionInfo(
   org: String, name: String, version: String, opts: Optionals,
   resolvers: Seq[Resolver], libraryDeps: Seq[SbtModuleID],
   scalaVersions: Seq[String], sbt: Boolean) {
 
-  private def mjson(m: SbtModuleID) =
-    """{
-    |   "organization":"%s",
-    |   "name": "%s",
-    |   "version": "%s"
-    |  }""".stripMargin.format(
-      m.organization, m.name, m.revision
-    )
-
-  private def licjson(l: License) =
-    """{
-    |   "name": "%s",
-    |   "url": "%s"
-    |  }""".stripMargin.format(
-      l.name, l.url
-    )
+  import com.codahale.jerkson.Json._
+  import ls.{ Library, ModuleID => LsModuleID, License }
+  import pj.Printer
 
   def represent = (_: Resolver) match {
     // Maven repos are composed of a name and root url,
@@ -48,31 +37,14 @@ case class VersionInfo(
     //case repo: RawRepository   => repo
   }
 
+  def sbtToLsModuleID(smid:SbtModuleID) = 
+    LsModuleID(smid.organization, smid.name, smid.revision)
+
   lazy val json =
-    """
-    |{
-    | "organization":"%s",
-    | "name":"%s",
-    | "version":"%s",
-    | "description":"%s",
-    | "site":"%s",
-    | "tags":%s,
-    | "docs":"%s",
-    | "licenses": %s,
-    | "resolvers": %s,
-    | "dependencies": %s,
-    | "scalas": %s,
-    | "sbt": %s
-    |}""".stripMargin.format(
-      org, name, version,
-      opts.description,
-      opts.homepage.getOrElse(""),
-      opts.tags.map("\"%s\"" format _).mkString("[",",","]"),
-      opts.docsUrl.getOrElse(""),
-      opts.licenses.map(licjson).mkString("[",",","]"),
-      resolvers.map(r => "\"%s\"" format(represent(r))).mkString("[",",","]"),
-      libraryDeps.map(mjson).mkString("[",",","]"),
-      scalaVersions.map("\"%s\"" format _).mkString("[",",","]"),
-      sbt
-    )
+    Printer(generate(Library(org, name, version,
+          opts.description, opts.homepage.map(_.toString).getOrElse(""),
+          opts.tags, opts.docsUrl.map(_.toString).getOrElse(""),
+          resolvers.map(represent), libraryDeps.map(sbtToLsModuleID),
+          scalaVersions, opts.licenses, sbt)))
+          .fold({ sys.error }, { pjs => pjs })
 }
