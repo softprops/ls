@@ -99,15 +99,15 @@ object Plugin extends sbt.Plugin with Requesting {
         (maybeUser, maybeRepo) match {
           case (Some(user), Some(repo)) =>
             if(lint) {
-            out.log.info("lsyncing project %s/%s@%s..." format(user, repo, vers))
-            try {
-              // todo: should this by an async server request?
-              http(Client(host).lsync(user, repo, branch.getOrElse("master"), vers) as_str)
-              out.log.info("Project was synchronized")
-            } catch {
-              case e =>
-                out.log.warn("Error synchronizing project libraries %s" format e.getMessage)
-            }
+              out.log.info("lsyncing project %s/%s@%s..." format(user, repo, vers))
+              try {
+                // todo: should this by an async server request?
+                http(Client(host).lsync(user, repo, branch.getOrElse("master"), vers) as_str)
+                out.log.info("Project was synchronized")
+              } catch {
+                case e =>
+                  out.log.warn("Error synchronizing project libraries %s" format e.getMessage)
+              }
             } else sys.error("Your version descriptor was invalid. %s" format(
               IO.read(vfile)
             ))
