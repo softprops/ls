@@ -33,7 +33,7 @@ object Plugin extends sbt.Plugin with Requesting {
   import java.net.URL
   import dispatch._
   import sbt.{ ModuleID => SbtModuleID }
-  import ls.LibraryVersions
+  import ls.{ LibraryVersions, Library }
 
   object LsKeys {
     // general
@@ -77,12 +77,16 @@ object Plugin extends sbt.Plugin with Requesting {
         if(vfile.exists) {
           val json = IO.read(vfile)
           inClassLoader(classOf[Library]) {
-            parse(json)
+            parse[Library](json)
           }
         }
         out.log.debug("Valid version info")
         true
       } catch {
+        case e: ClassNotFoundException =>
+          out.log.error("A class loading error was thrown for %s. This is a known issue with the jerkson json library and sbt. Please post an issue at http://github.com/softprops/ls/issues"
+                        .format(e.getMessage))
+           false
         case e =>
           e.printStackTrace
           out.log.error("Invalid version-info %s. %s" format(
@@ -296,6 +300,8 @@ object Plugin extends sbt.Plugin with Requesting {
               else state)
           })
         } catch {
+          case e: ClassNotFoundException  => sys.error(
+            "class not found %s. This is likely to be a conflict betweek Jerkson and Sbt" format e.getMessage)
           case dispatch.StatusCode(404, msg) => sys.error(
             "Library not found %s" format msg
           )
@@ -357,6 +363,8 @@ object Plugin extends sbt.Plugin with Requesting {
                     parse[Seq[LibraryVersions]](resp)
                   }, version(name), log)
               } catch {
+                case e: ClassNotFoundException  =>
+                  log.error("class not found %s. This is likely to be a conflict betweek Jerkson and Sbt" format e.getMessage)
                 case StatusCode(404, msg) =>
                   log.info("`%s` library not found" format name)
                 case p: ParsingException =>
@@ -390,6 +398,8 @@ object Plugin extends sbt.Plugin with Requesting {
                     parse[Seq[LibraryVersions]](resp)
                   }, log, color, name.split("@"):_*)
               } catch {
+                case e: ClassNotFoundException  =>
+                  log.error("class not found %s. This is likely to be a conflict betweek Jerkson and Sbt" format e.getMessage)
                 case StatusCode(404, msg) =>
                   out.log.info("`%s` library not found" format name)
                 case p: ParsingException =>
@@ -408,6 +418,8 @@ object Plugin extends sbt.Plugin with Requesting {
                   args:_*
                 )
               } catch {
+                case e: ClassNotFoundException  =>
+                  log.error("class not found %s. This is likely to be a conflict betweek Jerkson and Sbt" format e.getMessage)
                 case StatusCode(404, msg) =>
                   log.info("Library not found for keywords %s" format kwords.mkString(", "))
                 case p: ParsingException =>
