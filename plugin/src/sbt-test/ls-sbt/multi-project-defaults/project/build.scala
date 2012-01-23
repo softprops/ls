@@ -10,7 +10,8 @@ object MultiProject extends sbt.Build {
           (args, out) =>
             args match {
               case Seq(given, expected) =>
-                if(IO.read(file(given)).trim.equals(IO.read(file(expected)).trim)) out.log.debug(
+                if(IO.read(file(given)).trim.equals(
+                  IO.read(file(expected)).trim)) out.log.debug(
                   "Contents match"
                 )
                 else sys.error(
@@ -24,7 +25,8 @@ object MultiProject extends sbt.Build {
     }
   )
 
-  def shared: Seq[Setting[_]] = Defaults.defaultSettings ++ scriptedExtras ++ lsSettings ++ Seq(
+  def shared: Seq[Setting[_]] = Defaults.defaultSettings ++ scriptedExtras ++
+    lsSettings ++ Seq(
     // here we apply settings that ls-sbt `should` default to
     // when not scoped to LsKeys.lsync
     licenses := Seq(

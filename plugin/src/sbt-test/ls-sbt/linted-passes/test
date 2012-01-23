@@ -1,0 +1,3 @@
+# tests for list passing
+> ls-write-version
+> ls-lint-verify
