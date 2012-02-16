@@ -28,6 +28,7 @@ object Build extends sbt.Build {
     settings = buildSettings ++ Seq(
       libraryDependencies +=
         "net.databinder" %% "dispatch-http" % dispatchVersion,
+      version := "0.1.2-RC2",
       name := "ls")
     )
 
