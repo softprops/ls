@@ -201,8 +201,8 @@ object Plugin extends sbt.Plugin with Requesting {
           // the settings in the project's .sbt build definition
           val extracted = Project extract state
 		      import extracted._
-          import BuiltinCommands.{imports, reapply, DefaultBootCommands}
-		      import CommandSupport.{DefaultsCommand, InitCommand}
+          import BuiltinCommands.{ imports, reapply, DefaultBootCommands }
+		      import CommandSupport.{ DefaultsCommand, InitCommand }
 
           // one or more lines consisting of libraryDependency and resolvers
           // lhs is (plugin config, plugin instruct) | rhs is library config
@@ -219,7 +219,7 @@ object Plugin extends sbt.Plugin with Requesting {
                 if(l.sbt) {
                   println("Discovered sbt plugin %s@%s" format(l.name, v.version))
                   val depLine = ("""addSbtPlugin("%s" %% "%s" %% "%s")""" format(
-                    l.organization, l.name, v.version)
+                    l.organization /*v.organization*/, l.name, v.version)
                   ).trim
 
                   val rsvrLines = (v.resolvers.filterNot(sbtDefaultResolver).zipWithIndex.map {
@@ -237,7 +237,7 @@ object Plugin extends sbt.Plugin with Requesting {
                   Conflicts.detect(extracted.get(sbt.Keys.libraryDependencies), l, v)
 
                   val depLine = ("""libraryDependencies += "%s" %%%% "%s" %% "%s"%s""" format(
-                    l.organization, l.name, v.version, config match {
+                    l.organization/*v.organization*/, l.name, v.version, config match {
                       case Some(c) => """ %% "%s" """.format(c)
                       case _ => ""
                     }
