@@ -15,7 +15,21 @@ object Build extends sbt.Build {
     },
     publishTo ~= { _.orElse {
       Some(Resolver.file("lessis repo", new java.io.File("/var/www/repo")))
-    }}
+    }},
+    licenses := Seq("MIT" -> url("http://www.opensource.org/licenses/MIT")),
+    homepage := some(url("http://ls.implicit.ly/")),
+    pomExtra := (
+      <scm>
+        <url>git@github.com:softprops/ls.git</url>
+        <connection>scm:git:git@github.com:softprops/ls.git</connection>
+      </scm>
+      <developers>
+        <developer>
+          <id>softprops</id>
+          <name>Doug Tangren</name>
+          <url>http://twitter.com/softprops</url>
+        </developer>
+      </developers>)
   ) ++ Defaults.defaultSettings
 
   val dispatchVersion = "0.8.6"
