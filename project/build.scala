@@ -14,8 +14,9 @@ object Build extends sbt.Build {
       if (v == vg) "0.1.2-SNAPSHOT" else v
     },
     publishTo ~= { _.orElse {
-      Some(Resolver.file("lessis repo", new java.io.File("/var/www/repo")))
+      Some("nexus-releases" at "https://oss.sonatype.org/service/local/staging/deploy/maven2")
     }},
+    publishArtifact in Test := false,
     licenses := Seq("MIT" -> url("http://www.opensource.org/licenses/MIT")),
     homepage := some(url("http://ls.implicit.ly/")),
     pomExtra := (
@@ -27,7 +28,7 @@ object Build extends sbt.Build {
         <developer>
           <id>softprops</id>
           <name>Doug Tangren</name>
-          <url>http://twitter.com/softprops</url>
+          <url>https://github.com/softprops</url>
         </developer>
       </developers>)
   ) ++ Defaults.defaultSettings
@@ -55,7 +56,11 @@ object Build extends sbt.Build {
         "me.lessis" %% "pj" % "0.1.0" exclude(
           "org.codehaus.jackson", "jackson-core-asl")
       ),
-      resolvers += Resolvers.coda
+      resolvers += Resolvers.coda,
+      publishTo := Some(Resolver.url("sbt-plugin-releases", url(
+        "http://scalasbt.artifactoryonline.com/scalasbt/sbt-plugin-releases/"
+      ))(Resolver.ivyStylePatterns)),
+      publishMavenStyle := false
     ) ++ ScriptedPlugin.scriptedSettings /* ++ lsSettings ++ Seq(
       description in LsKeys.lsync := "An sbt interface for ls.implicit.ly",
       LsKeys.tags in LsKeys.lsync := Seq("ls", "plugin", "sbt"),
@@ -64,10 +69,6 @@ object Build extends sbt.Build {
         "coda" at "http://repo.codahale.com"
       ),
       LsKeys.docsUrl in LsKeys.lsync := Some(url("http://ls.implicit.ly/#publishing")),
-      homepage in LsKeys.lsync := Some(url("http://ls.implicit.ly/")),
-      licenses in LsKeys.lsync := Seq(
-        ("MIT", url("https://github.com/softprops/ls/blob/master/LICENSE"))
-      )
     )*/) dependsOn(lib)
 
   lazy val app = Project("app", file("app"),
