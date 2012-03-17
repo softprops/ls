@@ -1,3 +1,4 @@
+.ensime
 project/boot/
 src_managed/
 target/
