@@ -188,117 +188,13 @@ object Plugin extends sbt.Plugin with Requesting {
     LibraryParser(dep) match {
       case LibraryParser.Pass(user, repo, lib, version, config) =>
         try {
-          def sbtDefaultResolver(s: String) =
-            s.contains("http://repo1.maven.org/maven2/") || s.contains("http://scala-tools.org/repo-releases")
           val resp = http(Client(DefaultLsHost).lib(lib, version)(user)(repo) as_str)
           val ls = inClassLoader(classOf[LibraryVersions]) { 
             parse[Seq[LibraryVersions]](resp)
           }
 
-          // todo: refactorize
-          // what's going on below is simply building up a pipeline of of settings
-          // to ship off to sbt's to eval facitlity, then reload and optional save
-          // the settings in the project's .sbt build definition
-          val extracted = Project extract state
-		      import extracted._
-          import BuiltinCommands.{ imports, reapply, DefaultBootCommands }
-		      import CommandSupport.{ DefaultsCommand, InitCommand }
+          Depends(state, ls, version, config, persistently)
 
-          // one or more lines consisting of libraryDependency and resolvers
-          // lhs is (plugin config, plugin instruct) | rhs is library config
-          val lines: Either[(Seq[String], String), Seq[String]] = if(ls.size > 1) {
-            sys.error("""More than one libraries were resolved.
-                      | Try prefixing the library name with :user/:repo/:library-name to disambiguate.""".stripMargin)
-          } else {
-            val l = ls(0)
-            (version match {
-              case Some(v) => l.versions.find(_.version.equalsIgnoreCase(v))
-              case _ => Some(l.versions(0))
-            }) match {
-              case Some(v) =>                
-                if(l.sbt) {
-                  println("Discovered sbt plugin %s@%s" format(l.name, v.version))
-                  val depLine = ("""addSbtPlugin("%s" %% "%s" %% "%s")""" format(
-                    l.organization /*v.organization*/, l.name, v.version)
-                  ).trim
-
-                  val rsvrLines = (v.resolvers.filterNot(sbtDefaultResolver).zipWithIndex.map {
-                    case (url, i) =>
-                      "resolvers += \"%s\" at \"%s\"".format(
-                        "%s-resolver-%s".format(l.name, i),
-                        url
-                      )
-                  })
-                  val allLines = depLine +: rsvrLines
-                  Left((allLines, PluginSupport.help(l, v, allLines)))                  
-                } else {
-                  println("Discovered library %s@%s" format(l.name, v.version))
-
-                  Conflicts.detect(extracted.get(sbt.Keys.libraryDependencies), l, v)
-
-                  val depLine = ("""libraryDependencies += "%s" %%%% "%s" %% "%s"%s""" format(
-                    l.organization/*v.organization*/, l.name, v.version, config match {
-                      case Some(c) => """ %% "%s" """.format(c)
-                      case _ => ""
-                    }
-                  )).trim
-
-                  val rsvrLines = (v.resolvers.filterNot(sbtDefaultResolver).zipWithIndex.map {
-                    case (url, i) =>
-                      "resolvers += \"%s\" at \"%s\"".format(
-                        "%s-resolver-%s".format(l.name, i),
-                        url
-                      )
-                  })
-                  if(persistently) println("Evaluating and installling %s@%s"format(l.name, v.version))
-                  else println("Evalutating %s@%s. Enter `session clear` to revert".format(
-                    l.name, v.version
-                  ))
-                  Right(depLine +: rsvrLines)
-                }
-
-              case _ => sys.error("Could not find %s version of this library. possible versions (%s)" format(
-                version.getOrElse("latest"), l.versions.mkString(", "))
-              )
-            }
-          }
-
-          lines.fold({
-            // currently, we do not support plugin installation.
-            // when we do, that magic should happen here
-            case (pinLines, help) =>
-              println(help)
-              state
-          }, { libLines =>
-            // eval the first line to obtain
-            // a starting point for a fold
-            val (first, rest) = (libLines.head, libLines.tail)        
-		        val settings = EvaluateConfigurations.evaluateSetting(
-              session.currentEval(), "<set>", imports(extracted), first, 0
-            )(currentLoader)
-		        val append = Load.transformSettings(
-              Load.projectScope(currentRef), currentRef.build, rootProject, settings
-            )
-		        val newSession = session.appendSettings( append map (a => (a, first)))
-            // fold over lines to build up a new setting including all
-            // setting appendings
-            val (_, _, newestSession) = ((settings, append, newSession) /: rest)((a, line) => a match {
-              case (set, app, ses) =>
-                val settings = EvaluateConfigurations.evaluateSetting(
-                  ses.currentEval(), "<set>", imports(extracted), line, 0
-                )(currentLoader)
-		          val append = Load.transformSettings(
-                Load.projectScope(currentRef), currentRef.build, rootProject, set
-              )
-		          val newSession = ses.appendSettings( append map (a => (a, line)))
-              (settings, append, newSession)
-            })
-
-		        val commands = DefaultsCommand +: InitCommand +: DefaultBootCommands
-		        reapply(newestSession, structure,
-              if(persistently) state.copy(remainingCommands = "session save" +: commands)
-              else state)
-          })
         } catch {
           case e: ClassNotFoundException  => sys.error(
             "class not found %s. This is likely to be a conflict betweek Jerkson and Sbt" format e.getMessage)

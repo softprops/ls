@@ -2,13 +2,14 @@ import sbt._
 import Keys._
 
 object Build extends sbt.Build {
-  import ls.Plugin._
+  //import ls.Plugin._
 
   object Resolvers {
     val coda = "coda" at "http://repo.codahale.com"
   }
 
   val buildSettings = Seq(
+    scalacOptions += "-deprecation",
     organization <<= organization ?? "me.lessis",
     version <<= (version, version in GlobalScope){ (v,vg) =>
       if (v == vg) "0.1.2-SNAPSHOT" else v
@@ -36,7 +37,7 @@ object Build extends sbt.Build {
   val dispatchVersion = "0.8.6"
 
   lazy val root = Project("root", file("."), settings = buildSettings) aggregate(
-    plugin, lib, app
+    plugin, lib/*, app*/
   ) 
 
   lazy val lib = Project("library", file("library"),
@@ -51,15 +52,15 @@ object Build extends sbt.Build {
     settings = buildSettings ++ Seq(
       sbtPlugin := true,
       name := "ls-sbt",
+      version := "0.1.2-SNAPSHOT",
       libraryDependencies ++= Seq(
         "com.codahale" %% "jerkson" % "0.5.0",
         "me.lessis" %% "pj" % "0.1.0" exclude(
-          "org.codehaus.jackson", "jackson-core-asl")
+          "org.codehaus.jackson", "jackson-core-asl"),
+        "me.lessis" %% "ls" % "0.1.2-RC2"
       ),
-      resolvers += Resolvers.coda,
-      publishTo := Some(Resolver.url("sbt-plugin-releases", url(
-        "http://scalasbt.artifactoryonline.com/scalasbt/sbt-plugin-releases/"
-      ))(Resolver.ivyStylePatterns)),
+      resolvers += Resolvers.coda/*,
+      publishTo := Some(Resolver.sbtPluginRepo("releases"))*/,
       publishMavenStyle := false
     ) ++ ScriptedPlugin.scriptedSettings /* ++ lsSettings ++ Seq(
       description in LsKeys.lsync := "An sbt interface for ls.implicit.ly",
@@ -69,12 +70,14 @@ object Build extends sbt.Build {
         "coda" at "http://repo.codahale.com"
       ),
       LsKeys.docsUrl in LsKeys.lsync := Some(url("http://ls.implicit.ly/#publishing")),
-    )*/) dependsOn(lib)
+    )*/)// dependsOn(lib)
 
-  lazy val app = Project("app", file("app"),
+  // remove app from build until conscript settings
+  // are published for sbt 0.12.0
+  /*lazy val app = Project("app", file("app"),
     settings = buildSettings ++ 
       conscript.Harness.conscriptSettings ++ Seq(
         name := "ls-app"
       )
-    ) dependsOn(lib)
+    ) dependsOn(lib)*/
 }
