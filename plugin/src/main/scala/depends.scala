@@ -27,6 +27,7 @@ trait Declarations {
       }
     )).trim
 
+  // todo: use sbt constants here
   private def sbtBuiltinResolver(s: String) =
     s.contains("http://repo1.maven.org/maven2/") || s.contains("http://scala-tools.org/repo-releases")
 
@@ -35,7 +36,7 @@ trait Declarations {
 /** Attempts to package what is needed to capture and persist settings,
  *  namely libraryDependencies, within sbt's state */
 object Depends extends Declarations {
- 
+
   def install(state: State, persistently: Boolean)(libLines: Seq[String]) = {
     val extracted = Project extract state
 		import extracted.{ currentLoader, currentRef, rootProject, session, structure  }
@@ -43,7 +44,8 @@ object Depends extends Declarations {
 		import CommandStrings.{ DefaultsCommand, InitCommand }
 
     /** mix in new setting(s) returnning a new session */
-    def mix(ses: SessionSettings, line: String, settings: Seq[Project.Setting[_]]) =
+    def mix(ses: SessionSettings, line: String,
+            settings: Seq[Project.Setting[_]]) =
       ses.appendSettings( settings map (a => (a, line.split('\n').toList)))
 
     /** evaluate a line of settings for the current session */
@@ -79,7 +81,8 @@ object Depends extends Declarations {
 		val commands = DefaultsCommand +: InitCommand +: DefaultBootCommands
 		reapply(newestSession, structure,
             if(persistently) state.copy(
-              remainingCommands = (CommandStrings.SessionCommand + " save") +: commands)
+              remainingCommands = (CommandStrings.SessionCommand + " save") +:
+                commands)
             else state)
   }
 
