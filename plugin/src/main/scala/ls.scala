@@ -329,6 +329,9 @@ object Plugin extends sbt.Plugin with Requesting {
     commands ++= Seq(lsTry, lsInstall)
   )
 
+  /** Assume the default resolver is the sonotype oss repo */
+  lazy val DefaultResolvers = Seq(Opts.resolver.sonatypeReleases)
+
   def lsPublishSettings: Seq[Setting[_]] = Seq(
     host in lsync := DefaultLsHost,
     colors in lsync := true,
@@ -352,7 +355,7 @@ object Plugin extends sbt.Plugin with Requesting {
       )
     ),
     skipWrite := false,
-    externalResolvers in lsync := Seq(ScalaToolsReleases),
+    externalResolvers in lsync := DefaultResolvers,
     licenses in lsync <<= licenses in Runtime,
     versionInfo <<=
       (organization,
