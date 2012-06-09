@@ -1,2 +1,12 @@
-* use a proper json serializer
-* new `ls-lint` task to verify your `src/main/ls/:version.json` file is up to spec
+### Improvements
+
+* Use a proper json serializer. Previously the metadata captured by ls as combined with simple string munging. The use of a proper serializer will ensure the ls server will be able to parse this information.
+
+### Changes to defaults
+
+* Changed the default external resolver configured for libraries from `ScalaToolsReleases` to `Opts.releases.sonatypeReleases`. This setting determines which resolver to configure when using the `ls-install` and `ls-try` commands and functions as an hint to ls that this is a default
+
+### New task settings
+
+* New `ls-lint` task to verify your `src/main/ls/:version.json` file is up to spec. Since these files are hand editable json. You are free to modify their contents. `ls-lint` will let you know if your changes are currently compatible with the expected format.
+* New `ls-cat` task to print your version file to the console. This makes quickly inspecting that the metadata that `ls-write` extracts and writes is the data you want publishes.
