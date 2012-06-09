@@ -47,7 +47,9 @@ object Plugin extends sbt.Plugin with Requesting {
     val ghBranch = SettingKey[Option[String]](key("gh-branch"), "Github branch name")
 
     // syncing
-    val lint        = TaskKey[Boolean](key("lint"), "Verifies the structure of serialized version info") 
+    val lint        = TaskKey[Boolean](key("lint"), "Verifies the structure of serialized version info")
+    val cat         = TaskKey[Unit](key("cat"),
+                                    "Prints the contents of the current serialized version file to the console")
     val versionInfo = TaskKey[VersionInfo](key("version-info"), "Information about a version of a project")
     val versionFile = SettingKey[File](key("version-file"), "File storing version descriptor file")
     val writeVersion = TaskKey[Unit](key("write-version"), "Writes version data to descriptor file")
@@ -68,6 +70,19 @@ object Plugin extends sbt.Plugin with Requesting {
   }
 
   val DefaultLsHost = "http://ls.implicit.ly"
+
+  private def catTask: Initialize[Task[Unit]] =
+    (streams, versionFile, versionInfo) map {
+      (out, vfile, vinfo) =>
+        if (vfile.exists) {
+          out.log.info("version %s @ %s" format(vinfo.name, vinfo.version))
+          println(IO.read(vfile))
+        } else {
+          out.log.warn(
+            "Version %s @ %s did not exist. Create one with `ls-write`" format(
+              vinfo.name, vinfo.version))
+        }
+    }
 
   private def lintTask: Initialize[Task[Boolean]] =
     (streams, versionFile, versionInfo) map {
@@ -370,7 +385,8 @@ object Plugin extends sbt.Plugin with Requesting {
         (o, n, v, opts, rsvrs, ldeps, dfilter, csv, pi) =>
           VersionInfo(o, n, v, opts, rsvrs, ldeps.filter(dfilter), pi, csv)
        },
-    lint <<= lintTask,
+    lint in lsync <<= lintTask,
+    cat in lsync <<= catTask,
     writeVersion <<= writeVersionTask,
     ghUser in lsync := (Git.ghRepo match {
       case Some((user, _)) => Some(user)
