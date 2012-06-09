@@ -18,7 +18,7 @@ object Build extends sbt.Build {
       Some("nexus-releases" at "https://oss.sonatype.org/service/local/staging/deploy/maven2")
     }},
     publishArtifact in Test := false,
-    licenses := Seq("MIT" -> url("http://www.opensource.org/licenses/MIT")),
+    licenses <<= version(v => Seq("MIT" -> url("https://github.com/softprops/ls/blob/%s/LICENSE" format v))),
     homepage := some(url("http://ls.implicit.ly/")),
     pomExtra := (
       <scm>
@@ -60,7 +60,7 @@ object Build extends sbt.Build {
         "me.lessis" % "ls_2.9.1" % "0.1.2-RC2"
       ),
       resolvers += Resolvers.coda/*,
-      publishTo := Some(Resolver.sbtPluginRepo("releases"))*/,
+      publishTo := Some(Resolver.sbtPluginReleases)*/,
       publishMavenStyle := false
     ) ++ ScriptedPlugin.scriptedSettings /* ++ lsSettings ++ Seq(
       description in LsKeys.lsync := "An sbt interface for ls.implicit.ly",
