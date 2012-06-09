@@ -34,7 +34,7 @@ object Build extends sbt.Build {
       </developers>)
   ) ++ Defaults.defaultSettings
 
-  val dispatchVersion = "0.8.6"
+  val dispatchVersion = "0.8.8"
 
   lazy val root = Project("root", file("."), settings = buildSettings) aggregate(
     plugin, lib/*, app*/
@@ -54,10 +54,10 @@ object Build extends sbt.Build {
       name := "ls-sbt",
       version := "0.1.2-SNAPSHOT",
       libraryDependencies ++= Seq(
-        "com.codahale" %% "jerkson" % "0.5.0",
+        "com.codahale" % "jerkson_2.9.1" % "0.5.0",
         "me.lessis" %% "pj" % "0.1.0" exclude(
           "org.codehaus.jackson", "jackson-core-asl"),
-        "me.lessis" %% "ls" % "0.1.2-RC2"
+        "me.lessis" % "ls_2.9.1" % "0.1.2-RC2"
       ),
       resolvers += Resolvers.coda/*,
       publishTo := Some(Resolver.sbtPluginRepo("releases"))*/,
