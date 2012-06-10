@@ -10,10 +10,8 @@ object Build extends sbt.Build {
 
   val buildSettings = Seq(
     scalacOptions += Opts.compile.deprecation,
-    organization <<= organization ?? "me.lessis",
-    version <<= (version, version in GlobalScope){ (v,vg) =>
-      if (v == vg) "0.1.2-SNAPSHOT" else v
-    },
+    organization := "me.lessis",
+    version := "0.1.2-SNAPSHOT",
     publishArtifact in Test := false,
     publishMavenStyle := true,
     publishTo := Some(Opts.resolver.sonatypeReleases),
@@ -61,12 +59,11 @@ object Build extends sbt.Build {
       ),
       resolvers += Resolvers.coda,
       publishTo := Some(Classpaths.sbtPluginReleases),
-      publishMavenStyle := false
+      publishMavenStyle := false,
+      description := "An sbt interface for ls.implicit.ly"
     ) ++ ScriptedPlugin.scriptedSettings /* ++ lsSettings ++ Seq(
-      description in LsKeys.lsync := "An sbt interface for ls.implicit.ly",
       LsKeys.tags in LsKeys.lsync := Seq("ls", "plugin", "sbt"),
       externalResolvers in LsKeys.lsync := Seq(
-        "less is" at "http://repo.lessis.me",
         "coda" at "http://repo.codahale.com"
       ),
       LsKeys.docsUrl in LsKeys.lsync := Some(url("http://ls.implicit.ly/#publishing")),
