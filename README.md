@@ -23,7 +23,7 @@ Add resolvers for sbt 0.11.2
       "coda" at "http://repo.codahale.com"
     )
     
-Or if you are using sbt 0.11.3 or beyond, use the sbt community plugin resolver
+Or if you are using sbt 0.11.3, use the sbt community plugin resolver
 
     resolvers ++= Seq(
       Resolver.url("sbt-plugin-releases", new URL(
@@ -32,7 +32,16 @@ Or if you are using sbt 0.11.3 or beyond, use the sbt community plugin resolver
       "coda" at "http://repo.codahale.com"
     )
 
-Mix it in to your project definition 
+There is also a release availble if you are using sbt 0.12.0-RC1
+
+   addSbtPlugin("me.lessis" % "ls-sbt" % "0.1.2")
+
+   resolvers ++= Seq(
+     Classpaths.sbtPluginReleases,
+     Opts.resolver.sonatypeReleases
+   )
+
+Mix it in to your project definition
 
     seq(lsSettings: _*)
 
