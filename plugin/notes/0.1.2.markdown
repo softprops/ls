@@ -20,6 +20,6 @@ This release is targeted for the upcoming sbt 0.12.0 release line. See the list 
 
 ### Dependencies
 
-* Temporarily switching to lift-json instead of jackson for json parsing due to long standing non-deterministic class loader/pickled sig issue 
+* Temporarily switching to lift-json instead of jerkson for json parsing due to long standing non-deterministic class loader/pickled sig issue 
 
 
