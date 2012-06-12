@@ -1,6 +1,6 @@
 ### Improvements
 
-* Use a proper json serializer. Previously the metadata captured by ls as combined with simple string munging. The use of a proper serializer will ensure the ls server will be able to parse this information.
+* Use a proper json serializer. Previously the metadata captured by ls was combined with simple string munging. The use of a proper serializer will ensure the ls server will be able to parse this information.
 
 ### Changes to defaults
 
