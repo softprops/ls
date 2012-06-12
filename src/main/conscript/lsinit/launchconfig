@@ -8,5 +8,5 @@
 [repositories]
   less:http://repo.lessis.me
   local
-  scala-tools-releases
   maven-central
+  sonatype-releases: https://oss.sonatype.org/service/local/repositories/releases/content/
