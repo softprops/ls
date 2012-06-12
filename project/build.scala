@@ -11,10 +11,10 @@ object Build extends sbt.Build {
   val buildSettings = Seq(
     scalacOptions += Opts.compile.deprecation,
     organization := "me.lessis",
-    version := "0.1.2-SNAPSHOT",
+    version := "0.1.2",
     publishArtifact in Test := false,
     publishMavenStyle := true,
-    publishTo := Some(Opts.resolver.sonatypeReleases),
+    publishTo := Some(Opts.resolver.sonatypeStaging),
     licenses <<= version(v =>
       Seq("MIT" ->
           url("https://github.com/softprops/ls/blob/%s/LICENSE" format v))),
@@ -57,7 +57,7 @@ object Build extends sbt.Build {
       libraryDependencies ++= Seq(
         "me.lessis" %% "pj" % "0.1.0",
         "net.liftweb" % "lift-json_2.9.1" % "2.4",
-        "me.lessis" %% "ls" % "0.1.2-SNAPSHOT"
+        "me.lessis" %% "ls" % "0.1.2"
       ),
       resolvers += Resolvers.coda,
       publishTo := Some(Classpaths.sbtPluginReleases),
