@@ -35,8 +35,11 @@ object Build extends sbt.Build {
 
   val dispatchVersion = "0.8.8"
 
-  lazy val root = Project("root", file("."), settings = buildSettings) aggregate(
-    plugin, lib/*, app*/
+  lazy val root = Project(
+    "root", file("."),
+    settings = buildSettings) aggregate(
+    plugin, lib
+    /*, app - leave app out of aggregation until sbt 0.12.0 is final */
   ) 
 
   lazy val lib = Project("library", file("library"),
