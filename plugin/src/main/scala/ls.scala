@@ -431,7 +431,7 @@ object Plugin extends sbt.Plugin
 
     val clrs = Wheels.shuffle
     tups map { case (n, v, d) =>
-      log.info(
+      println(
         hl(fmt format(
           " -",
           "%s (%s)".format(n,v),
