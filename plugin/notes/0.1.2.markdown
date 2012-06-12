@@ -1,6 +1,6 @@
 ### Notice
 
-This release is targeted for the upcoming sbt 0.12.0 release line. See the list for information regarding the [0.12.0-RC1 launcher](https://groups.google.com/forum/#!topic/simple-build-tool/eAGOACDH59E) now. It's a [big release](https://github.com/harrah/xsbt/wiki/ChangeSummary_0.12.0).
+This release is targeted for the upcoming sbt 0.12.0 release line. See the list for information regarding the [0.12.0-RC1 launcher](https://groups.google.com/forum/#!topic/simple-build-tool/eAGOACDH59E) now. It's a [big release](https://github.com/harrah/xsbt/wiki/ChangeSummary_0.12.0). Support the ecosystem and become and early adopter.
 
 ### Improvements
 
@@ -20,4 +20,6 @@ This release is targeted for the upcoming sbt 0.12.0 release line. See the list 
 
 ### Dependencies
 
-* Temporarily switching to lift-json instead of jackson for json parsing due to long standing non-deterministic class loader/pickled sig issue
+* Temporarily switching to lift-json instead of jackson for json parsing due to long standing non-deterministic class loader/pickled sig issue 
+
+
