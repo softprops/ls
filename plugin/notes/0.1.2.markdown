@@ -1,6 +1,13 @@
+### Notice
+
+This release is targeted for the upcoming sbt 0.12.0 release line. See the list for information regarding the [0.12.0-RC1 launcher](https://groups.google.com/forum/#!topic/simple-build-tool/eAGOACDH59E) now.
+
 ### Improvements
 
-* Use a proper json serializer. Previously the metadata captured by ls was combined with simple string munging. The use of a proper serializer will ensure the ls server will be able to parse this information.
+* Use a proper json serializer. Previously the metadata captured by ls was combined with simple string munging. The use of a proper serializer will ensure the ls server will be able to parse this information. [issue 45](https://github.com/softprops/ls/issues/45)
+* Prefer lsyncing released versions. ls is meant to be a tool for resolving stable libraries, not snapshots. [issue 61](https://github.com/softprops/ls/issues/61)
+* Ensure regular output. ls query results should print to stdout regardless of log level. [issue 57](https://github.com/softprops/ls/issues/57)
+* Version list is truncated for general queries. Long lists of released versions are non useful.
 
 ### Changes to defaults
 
