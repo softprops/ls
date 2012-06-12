@@ -1,0 +1,33 @@
+{
+  "organization" : "me.lessis",
+  "name" : "ls-sbt",
+  "version" : "0.1.2",
+  "description" : "An sbt interface for ls.implicit.ly",
+  "site" : "http://ls.implicit.ly/",
+  "tags" : [ "ls", "plugin", "sbt" ],
+  "docs" : "http://ls.implicit.ly/#publishing",
+  "resolvers" : [ "http://repo.codahale.com" ],
+  "dependencies" : [ {
+    "organization" : "me.lessis",
+    "name" : "pj",
+    "version" : "0.1.0"
+  }, {
+    "organization" : "net.liftweb",
+    "name" : "lift-json_2.9.1",
+    "version" : "2.4"
+  }, {
+    "organization" : "me.lessis",
+    "name" : "ls",
+    "version" : "0.1.2"
+  }, {
+    "organization" : "org.scala-sbt",
+    "name" : "scripted-sbt",
+    "version" : "0.12.0-RC1"
+  } ],
+  "scalas" : [ "2.9.2" ],
+  "licenses" : [ {
+    "name" : "MIT",
+    "url" : "https://github.com/softprops/ls/blob/0.1.2/LICENSE"
+  } ],
+  "sbt" : true
+}

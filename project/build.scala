@@ -2,7 +2,7 @@ import sbt._
 import Keys._
 
 object Build extends sbt.Build {
-  //import ls.Plugin._
+  import ls.Plugin._
 
   object Resolvers {
     val coda = "coda" at "http://repo.codahale.com"
@@ -63,13 +63,13 @@ object Build extends sbt.Build {
       publishTo := Some(Classpaths.sbtPluginReleases),
       publishMavenStyle := false,
       description := "An sbt interface for ls.implicit.ly"
-    ) ++ ScriptedPlugin.scriptedSettings /* ++ lsSettings ++ Seq(
+    ) ++ ScriptedPlugin.scriptedSettings ++ lsSettings ++ Seq(
       LsKeys.tags in LsKeys.lsync := Seq("ls", "plugin", "sbt"),
       externalResolvers in LsKeys.lsync := Seq(
         "coda" at "http://repo.codahale.com"
       ),
-      LsKeys.docsUrl in LsKeys.lsync := Some(url("http://ls.implicit.ly/#publishing")),
-    )*/)// dependsOn(lib)
+      LsKeys.docsUrl in LsKeys.lsync := Some(url("http://ls.implicit.ly/#publishing"))
+    ))// dependsOn(lib)
 
   lazy val app = Project("app", file("app"),
     settings = buildSettings ++ 
