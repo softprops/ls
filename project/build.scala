@@ -59,7 +59,7 @@ object Build extends sbt.Build {
         "net.liftweb" % "lift-json_2.9.1" % "2.4",
         "me.lessis" %% "ls" % "0.1.2"
       ),
-      resolvers += Resolvers.coda,
+      resolvers ++= Seq(Resolvers.coda, Opts.resolver.sonatypeReleases),
       publishTo := Some(Classpaths.sbtPluginReleases),
       publishMavenStyle := false,
       description := "An sbt interface for ls.implicit.ly"
