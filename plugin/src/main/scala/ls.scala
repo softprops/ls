@@ -272,7 +272,7 @@ object Plugin extends sbt.Plugin
                 val resp = http(named(name)(None)(None) as_str)
                 libraries(
                   parseJson[List[LibraryVersions]](resp),
-                  log, color,
+                  log, color, -1,
                   name.split("@"):_*)
               } catch {
                 case StatusCode(404, msg) =>
@@ -285,7 +285,7 @@ object Plugin extends sbt.Plugin
                 val resp = http(cli.search(kwords.toSeq) as_str)
                 libraries(
                   parseJson[List[LibraryVersions]](resp),
-                  log, color,
+                  log, color, 3,
                   args:_*
                 )
               } catch {
@@ -411,8 +411,12 @@ object Plugin extends sbt.Plugin
     }
 
 
-  private def libraries(libs: Seq[LibraryVersions], log: sbt.Logger, colors: Boolean, terms: String*) = {
-    val tups = libs.map(l => (l.name, l.versions.map(_.version).mkString(", "), l.description))
+  private def libraries(libs: Seq[LibraryVersions], log: sbt.Logger, colors: Boolean, maxVersions: Int, terms: String*) = {
+    def versions(l: LibraryVersions) =
+      if (maxVersions == -1 || l.versions.size < maxVersions) l.versions.map(_.version)
+      else l.versions.take(maxVersions).map(_.version) :+ "..."
+
+    val tups = libs.map(l => (l.name, versions(l).mkString(", "), l.description))
     val len = math.max(tups.map{ case (n, vs, _ ) => "%s (%s)".format(n, vs).size }.sortWith(_>_).head, 10)
     val fmt = "%s %-" + len + "s # %s"
     val lterms: Seq[String] = terms.toList
