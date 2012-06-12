@@ -10,3 +10,7 @@
 
 * New `ls-lint` task to verify your `src/main/ls/:version.json` file is up to spec. Since these files are hand editable json. You are free to modify their contents. `ls-lint` will let you know if your changes are currently compatible with the expected format.
 * New `ls-cat` task to print your version file to the console. This makes quickly inspecting that the metadata that `ls-write` extracts and writes is the data you want publishes.
+
+### Dependencies
+
+* Temporarily switching to lift-json instead of jackson for json parsing due to long standing non-deterministic class loader/pickled sig issue

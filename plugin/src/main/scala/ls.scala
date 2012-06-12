@@ -4,30 +4,10 @@ import sbt._
 import Keys._
 import Project.Initialize
 
-trait Requesting {
-  import dispatch._
-  import org.apache.http.conn.{ HttpHostConnectException => ConnectionRefused }
-
-  def http[T](hand: Handler[T]): T = {
-    val h = new Http with NoLogging
-    try { h(hand) }
-    catch {
-      case cf: ConnectionRefused => sys.error(
-        "ls is currently not available to take your call"
-      )
-      case uh:java.net.UnknownHostException => sys.error(
-        "You may not know your host as well as you think. Your http client doesn't know %s" format uh.getMessage
-      )
-    }
-    finally { h.shutdown() }
-  }
-}
-
-object Plugin extends sbt.Plugin with Requesting {
-  import ls.ClassLoaders._
+object Plugin extends sbt.Plugin
+  with Requesting with LiftJsonParsing {
   import scala.collection.JavaConversions._
-  import com.codahale.jerkson.Json._
-  import com.codahale.jerkson.ParsingException
+  
   import LsKeys.{ ls => lskey, _ }
   import java.io.File
   import java.net.URL
@@ -87,23 +67,14 @@ object Plugin extends sbt.Plugin with Requesting {
   private def lintTask: Initialize[Task[Boolean]] =
     (streams, versionFile, versionInfo) map {
       (out, vfile, vinfo) => try {
-        // note: calling #json on version info triggers lazy jerkson serialization
-        vinfo.json
         if(vfile.exists) {
           val json = IO.read(vfile)
-          inClassLoader(classOf[Library]) {
-            parse[Library](json)
-          }
+          parseJson[Library](json)
         }
         out.log.debug("Valid version info")
         true
       } catch {
-        case e: ClassNotFoundException =>
-          out.log.error("A class loading error was thrown for %s. This is a known issue with the jerkson json library and sbt. Please post an issue at http://github.com/softprops/ls/issues"
-                        .format(e.getMessage))
-           false
         case e =>
-          e.printStackTrace
           out.log.error("Invalid version-info %s. %s" format(
             e.getMessage, if(vfile.exists) "\n" + IO.read(vfile) else ""
           ))
@@ -204,20 +175,11 @@ object Plugin extends sbt.Plugin with Requesting {
       case LibraryParser.Pass(user, repo, lib, version, config) =>
         try {
           val resp = http(Client(DefaultLsHost).lib(lib, version)(user)(repo) as_str)
-          val ls = inClassLoader(classOf[LibraryVersions]) { 
-            parse[Seq[LibraryVersions]](resp)
-          }
-
+          val ls = parseJson[List[LibraryVersions]](resp)
           Depends(state, ls, version, config, persistently)
-
         } catch {
-          case e: ClassNotFoundException  => sys.error(
-            "class not found %s. This is likely to be a conflict betweek Jerkson and Sbt" format e.getMessage)
           case dispatch.StatusCode(404, msg) => sys.error(
             "Library not found %s" format msg
-          )
-          case p: ParsingException => sys.error(
-            "received unexpected response from `ls`"
           )
           case Conflicts.Conflict(_, _, _, msg) => sys.error(
             msg
@@ -270,16 +232,11 @@ object Plugin extends sbt.Plugin with Requesting {
                 }
                 val resp = http(named(name)(None)(None) as_str)
                 docsFor(
-                  inClassLoader(classOf[LibraryVersions]) {
-                    parse[Seq[LibraryVersions]](resp)
-                  }, version(name), log)
+                  parseJson[List[LibraryVersions]](resp),
+                  version(name), log)
               } catch {
-                case e: ClassNotFoundException  =>
-                  log.error("class not found %s. This is likely to be a conflict betweek Jerkson and Sbt" format e.getMessage)
                 case StatusCode(404, msg) =>
                   log.info("`%s` library not found" format name)
-                case p: ParsingException =>
-                  log.info("received an unexpected response from `ls`")
               }
             case _ => sys.error(
               "Please provide a name and optionally a version of the library you want docs for in the form ls-docs <name> or ls-docs <name>@<version>"
@@ -305,16 +262,12 @@ object Plugin extends sbt.Plugin with Requesting {
                 log.info("Fetching library info for %s" format name)
                 val resp = http(named(name)(None)(None) as_str)
                 libraries(
-                  inClassLoader(classOf[LibraryVersions]) {
-                    parse[Seq[LibraryVersions]](resp)
-                  }, log, color, name.split("@"):_*)
+                  parseJson[List[LibraryVersions]](resp),
+                  log, color,
+                  name.split("@"):_*)
               } catch {
-                case e: ClassNotFoundException  =>
-                  log.error("class not found %s. This is likely to be a conflict betweek Jerkson and Sbt" format e.getMessage)
                 case StatusCode(404, msg) =>
                   out.log.info("`%s` library not found" format name)
-                case p: ParsingException =>
-                  log.info("received unexpected response from `ls`")
               }
             case kwords =>
               val cli = Client(host)
@@ -322,19 +275,13 @@ object Plugin extends sbt.Plugin with Requesting {
                 log.info("Fetching library info matching %s" format kwords.mkString(", "))
                 val resp = http(cli.search(kwords.toSeq) as_str)
                 libraries(
-                  inClassLoader(classOf[LibraryVersions]) {
-                    parse[Seq[LibraryVersions]](resp)
-                  },
+                  parseJson[List[LibraryVersions]](resp),
                   log, color,
                   args:_*
                 )
               } catch {
-                case e: ClassNotFoundException  =>
-                  log.error("class not found %s. This is likely to be a conflict betweek Jerkson and Sbt" format e.getMessage)
                 case StatusCode(404, msg) =>
                   log.info("Library not found for keywords %s" format kwords.mkString(", "))
-                case p: ParsingException =>
-                  log.info("received unexpected response from `ls`")
               }
           }
       }
@@ -385,8 +332,8 @@ object Plugin extends sbt.Plugin with Requesting {
         (o, n, v, opts, rsvrs, ldeps, dfilter, csv, pi) =>
           VersionInfo(o, n, v, opts, rsvrs, ldeps.filter(dfilter), pi, csv)
        },
-    lint in lsync <<= lintTask,
-    cat in lsync <<= catTask,
+    lint <<= lintTask,
+    cat <<= catTask,
     writeVersion <<= writeVersionTask,
     ghUser in lsync := (Git.ghRepo match {
       case Some((user, _)) => Some(user)

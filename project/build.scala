@@ -52,10 +52,9 @@ object Build extends sbt.Build {
       sbtPlugin := true,
       name := "ls-sbt",
       libraryDependencies ++= Seq(
-        "com.codahale" % "jerkson_2.9.1" % "0.5.0",
-        "me.lessis" %% "pj" % "0.1.0" exclude(
-          "org.codehaus.jackson", "jackson-core-asl"),
-        "me.lessis" %% "ls" % "0.1.2-SNAPHOT"
+        "me.lessis" %% "pj" % "0.1.0",
+        "net.liftweb" % "lift-json_2.9.1" % "2.4",
+        "me.lessis" %% "ls" % "0.1.2-SNAPSHOT"
       ),
       resolvers += Resolvers.coda,
       publishTo := Some(Classpaths.sbtPluginReleases),

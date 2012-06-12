@@ -13,9 +13,9 @@ case class Optionals(
 case class VersionInfo(
   org: String, name: String, version: String, opts: Optionals,
   resolvers: Seq[Resolver], libraryDeps: Seq[SbtModuleID],
-  scalaVersions: Seq[String], sbt: Boolean) {
+  scalaVersions: Seq[String], sbt: Boolean)
+  extends LiftJsonSerializing {
 
-  import com.codahale.jerkson.Json._
   import ls.{ Library, ModuleID => LsModuleID, License }
   import pj.Printer
 
@@ -41,7 +41,7 @@ case class VersionInfo(
     LsModuleID(smid.organization, smid.name, smid.revision)
 
   lazy val json =
-    Printer(generate(Library(org, name, version,
+    Printer(serialize(Library(org, name, version,
           opts.description, opts.homepage.map(_.toString).getOrElse(""),
           opts.tags, opts.docsUrl.map(_.toString).getOrElse(""),
           resolvers.map(represent), libraryDeps.map(sbtToLsModuleID),
