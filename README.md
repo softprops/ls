@@ -32,14 +32,14 @@ Or if you are using sbt 0.11.3, use the sbt community plugin resolver
       "coda" at "http://repo.codahale.com"
     )
 
-There is also a release availble if you are using sbt 0.12.0-RC1
+There is also a release available if you are using sbt 0.12.0-RC1
 
-   addSbtPlugin("me.lessis" % "ls-sbt" % "0.1.2")
+    addSbtPlugin("me.lessis" % "ls-sbt" % "0.1.2")
 
-   resolvers ++= Seq(
-     Classpaths.sbtPluginReleases,
-     Opts.resolver.sonatypeReleases
-   )
+    resolvers ++= Seq(
+      Classpaths.sbtPluginReleases,
+      Opts.resolver.sonatypeReleases
+    )
 
 Mix it in to your project definition
 
