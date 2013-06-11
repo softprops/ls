@@ -4,7 +4,7 @@
   name: ls-app
   class: ls.LsInit
 [scala]
-  version: 2.10.0
+  version: 2.10
 [repositories]
   less:http://repo.lessis.me
   local
