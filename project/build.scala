@@ -65,7 +65,9 @@ object Build extends sbt.Build {
        // "me.lessis" %% "ls" % "0.1.2"
       ),
       resolvers ++= Seq(Resolvers.coda, Opts.resolver.sonatypeReleases),
-      publishTo := Some(Classpaths.sbtPluginReleases),
+      publishTo := None,//Some(Classpaths.sbtPluginReleases),
+      publish := { }, // skip publishing for this root project.
+      publishLocal := { }, // skip publishing locally,
       publishMavenStyle := false,
       description := "An sbt interface for ls.implicit.ly"
     ) ++ ScriptedPlugin.scriptedSettings ++ lsSettings ++ Seq(
@@ -81,7 +83,7 @@ object Build extends sbt.Build {
       /*conscript.Harness.conscriptSettings ++ */Seq(
          // don't publish until sbt 0.12.0 is final to avoid
         // punishing 0.11 users
-        publishTo := None,
+        publishTo := Some(Opts.resolver.sonatypeStaging),
         resolvers += Classpaths.typesafeResolver,
         libraryDependencies <+= (sbtVersion)(
           "org.scala-sbt" %
