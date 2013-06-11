@@ -1,5 +1,7 @@
 package ls
 
+import scala.language.postfixOps
+
 abstract class Props(resource: String) {
   import scala.util.control.Exception.allCatch
 

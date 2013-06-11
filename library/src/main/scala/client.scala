@@ -1,5 +1,8 @@
 package ls
 
+import scala.language.implicitConversions
+import scala.language.reflectiveCalls
+
 case class Client(host: String) {
   import dispatch._
   import java.net.URLEncoder.encode
