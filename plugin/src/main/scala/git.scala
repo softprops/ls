@@ -1,5 +1,7 @@
 package ls
 
+import scala.util.control.NonFatal
+
 object Git {
   
   object GhRepo {
@@ -25,7 +27,7 @@ object Git {
           case CurrentBranch(_, br) => br
         }
     } catch {
-      case _ => None
+      case NonFatal(_) => None
     }
 
   def ghRepo: Option[(String, String)] =
@@ -35,6 +37,6 @@ object Git {
           case GhRepo(user, repo) => (user, repo)
         }
     } catch {
-      case _ => None
+      case NonFatal(_) => None
     }
 }

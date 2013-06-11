@@ -1,6 +1,6 @@
 package ls
 
-import sbt.{ BuiltinCommands, CommandStrings, EvaluateConfigurations,
+import sbt.{ BuiltinCommands, CommandStrings, Def, EvaluateConfigurations,
             LineRange, Load, Project, SessionSettings, State }
 
 trait Declarations {
@@ -45,7 +45,7 @@ object Depends extends Declarations {
 
     /** mix in new setting(s) returnning a new session */
     def mix(ses: SessionSettings, line: String,
-            settings: Seq[Project.Setting[_]]) =
+            settings: Seq[Def.Setting[_]]) =
       ses.appendSettings( settings map (a => (a, line.split('\n').toList)))
 
     /** evaluate a line of settings for the current session */
@@ -55,7 +55,7 @@ object Depends extends Declarations {
       )(currentLoader)
 
     /** Transforms provided settings with existing settings and return a new set of settings */
-    def transform(settings: Seq[Project.Setting[_]]) =
+    def transform(settings: Seq[Def.Setting[_]]) =
        Load.transformSettings(
          Load.projectScope(currentRef), currentRef.build, rootProject, settings)
 

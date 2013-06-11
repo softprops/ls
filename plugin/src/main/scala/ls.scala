@@ -3,6 +3,8 @@ package ls
 import sbt._
 import Keys._
 import Project.Initialize
+import scala.language.postfixOps
+import scala.util.control.NonFatal
 
 object Plugin extends sbt.Plugin
   with Requesting with LiftJsonParsing {
@@ -51,7 +53,7 @@ object Plugin extends sbt.Plugin
 
   val DefaultLsHost = "http://ls.implicit.ly"
 
-  private def catTask: Initialize[Task[Unit]] =
+  private def catTask: Def.Initialize[Task[Unit]] =
     (streams, versionFile, versionInfo) map {
       (out, vfile, vinfo) =>
         if (vfile.exists) {
@@ -64,18 +66,19 @@ object Plugin extends sbt.Plugin
         }
     }
 
-  private def lintTask: Initialize[Task[Boolean]] =
+  private def lintTask: Def.Initialize[Task[Boolean]] =
     (streams, versionFile, versionInfo) map {
       (out, vfile, vinfo) => try {
         if(vfile.exists) {
           val json = IO.read(vfile)
+          // todo: parse with json4s
           parseJson[Library](json)
         }
         out.log.debug("Valid version info")
         if (snapshot(vinfo.version)) out.log.warn(SnapshotWarning)
         true
       } catch {
-        case e =>
+        case NonFatal(e) =>
           out.log.error("Invalid version-info %s. %s" format(
             e.getMessage, if(vfile.exists) "\n" + IO.read(vfile) else ""
           ))
@@ -83,7 +86,7 @@ object Plugin extends sbt.Plugin
       }
     }
 
-  private def lsyncTask: Initialize[Task[Unit]] =
+  private def lsyncTask: Def.Initialize[Task[Unit]] =
     (streams, ghUser in lsync, ghRepo in lsync, ghBranch in lsync, version in lsync,
      host in lsync, versionFile, lint) map {
       (out, maybeUser, maybeRepo, branch, vers, host, vfile, lint) =>
@@ -99,7 +102,7 @@ object Plugin extends sbt.Plugin
                   http(Client(host).lsync(user, repo, branch.getOrElse("master"), vers) as_str)
                   out.log.info("Project was synchronized")
                 } catch {
-                  case e =>
+                  case NonFatal(e) =>
                     out.log.warn("Error synchronizing project libraries %s" format e.getMessage)
                 }
               }
@@ -114,7 +117,7 @@ object Plugin extends sbt.Plugin
 
   private val SnapshotWarning = "ls only supports release versions not likely to change. This excludes snapshot versions."
 
-  private def writeVersionTask: Initialize[Task[Unit]] = 
+  private def writeVersionTask: Def.Initialize[Task[Unit]] = 
      (streams, versionFile, versionInfo, skipWrite) map {
       (out, f, info, skip) =>
         def write() {
@@ -184,6 +187,7 @@ object Plugin extends sbt.Plugin
       case LibraryParser.Pass(user, repo, lib, version, config) =>
         try {
           val resp = http(Client(DefaultLsHost).lib(lib, version)(user)(repo) as_str)
+          // todo: parse with json4s
           val ls = parseJson[List[LibraryVersions]](resp)
           Depends(state, ls, version, config, persistently)
         } catch {
@@ -241,6 +245,7 @@ object Plugin extends sbt.Plugin
                 }
                 val resp = http(named(name)(None)(None) as_str)
                 docsFor(
+                  // todo: parse with json4s
                   parseJson[List[LibraryVersions]](resp),
                   version(name), log)
               } catch {
@@ -271,6 +276,7 @@ object Plugin extends sbt.Plugin
                 log.info("Fetching library info for %s" format name)
                 val resp = http(named(name)(None)(None) as_str)
                 libraries(
+                  // todo: parse json4s
                   parseJson[List[LibraryVersions]](resp),
                   log, color, -1,
                   name.split("@"):_*)
@@ -284,6 +290,7 @@ object Plugin extends sbt.Plugin
                 log.info("Fetching library info matching %s" format kwords.mkString(", "))
                 val resp = http(cli.search(kwords.toSeq) as_str)
                 libraries(
+                  // todo: parse json4s
                   parseJson[List[LibraryVersions]](resp),
                   log, color, 3,
                   args:_*
@@ -406,7 +413,7 @@ object Plugin extends sbt.Plugin
             dsk.getMethod("getDesktop").invoke(null), new URI(u)
           )
           None
-        } catch { case e => Some(e) }
+        } catch { case NonFatal(e) => Some(e) }
       case empty => None
     }
 
