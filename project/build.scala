@@ -8,10 +8,12 @@ object Build extends sbt.Build {
     val coda = "coda" at "http://repo.codahale.com"
   }
 
-  val buildSettings = Seq(
-    scalacOptions += Opts.compile.deprecation,
+  val buildSettings = Defaults.defaultSettings ++ Seq(
+    scalacOptions ++= Seq(Opts.compile.deprecation, "-feature"),
     organization := "me.lessis",
     version := "0.1.2",
+    sbtVersion in Global := "0.13.0-Beta2",
+    scalaVersion in Global := "2.10.2-RC2",
     publishArtifact in Test := false,
     publishMavenStyle := true,
     publishTo := Some(Opts.resolver.sonatypeStaging),
@@ -31,16 +33,18 @@ object Build extends sbt.Build {
           <url>https://github.com/softprops</url>
         </developer>
       </developers>)
-  ) ++ Defaults.defaultSettings
+  )
 
   val dispatchVersion = "0.8.8"
 
   lazy val root = Project(
     "root", file("."),
-    settings = buildSettings) aggregate(
-    plugin, lib
-    /*, app - leave app out of aggregation until sbt 0.12.0 is final */
-  ) 
+    settings = buildSettings ++ Seq(
+      test := { }, // no tests
+      publish := { }, // skip publishing for this root project.
+      publishLocal := { }, // skip publishing locally,
+      ls.Plugin.LsKeys.skipWrite := true // don't track root in ls
+    )) aggregate(plugin, lib, app)
 
   lazy val lib = Project("library", file("library"),
     settings = buildSettings ++ Seq(
@@ -56,8 +60,9 @@ object Build extends sbt.Build {
       name := "ls-sbt",
       libraryDependencies ++= Seq(
         "me.lessis" %% "pj" % "0.1.0",
-        "net.liftweb" % "lift-json_2.9.1" % "2.4",
-        "me.lessis" %% "ls" % "0.1.2"
+        "org.json4s" %% "json4s-native" % "3.2.2"
+        //"net.liftweb" % "lift-json_2.9.1" % "2.4"
+       // "me.lessis" %% "ls" % "0.1.2"
       ),
       resolvers ++= Seq(Resolvers.coda, Opts.resolver.sonatypeReleases),
       publishTo := Some(Classpaths.sbtPluginReleases),
@@ -69,7 +74,7 @@ object Build extends sbt.Build {
         "coda" at "http://repo.codahale.com"
       ),
       LsKeys.docsUrl in LsKeys.lsync := Some(url("http://ls.implicit.ly/#publishing"))
-    ))// dependsOn(lib)
+    )) dependsOn(lib)
 
   lazy val app = Project("app", file("app"),
     settings = buildSettings ++ 
