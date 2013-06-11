@@ -1,10 +1,10 @@
 [app]
-  version: 0.1.1
+  version: 0.1.2
   org: me.lessis
   name: ls-app
   class: ls.LsInit
 [scala]
-  version: 2.9.1
+  version: 2.10.0
 [repositories]
   less:http://repo.lessis.me
   local
