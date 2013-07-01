@@ -8,6 +8,7 @@ object LsInit {
     val exit = run(args)
     System.exit(exit)
   }
+
   def run(args: Array[String]): Int = {
     val base = new File(args.headOption.getOrElse("."))
     val result = if (base.isDirectory) {
@@ -20,6 +21,7 @@ object LsInit {
       { msg => println(msg); 0 }
     )
   }
+
   def setup(base: File, version: String) = {
     val build = new File(base, "build.sbt")
     val plugin = new File(base, "project/plugins.sbt")

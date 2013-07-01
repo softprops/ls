@@ -12,8 +12,8 @@ object Build extends sbt.Build {
     scalacOptions ++= Seq(Opts.compile.deprecation, "-feature"),
     organization := "me.lessis",
     version := "0.1.2",
-    sbtVersion in Global := "0.13.0-Beta2",
-    scalaVersion in Global := "2.10.2-RC2",
+    sbtVersion in Global := "0.13.0-RC1",
+    scalaVersion in Global := "2.10.2",
     publishArtifact in Test := false,
     publishMavenStyle := true,
     publishTo := Some(Opts.resolver.sonatypeStaging),
@@ -65,9 +65,9 @@ object Build extends sbt.Build {
        // "me.lessis" %% "ls" % "0.1.2"
       ),
       resolvers ++= Seq(Resolvers.coda, Opts.resolver.sonatypeReleases),
-      publishTo := None,//Some(Classpaths.sbtPluginReleases),
-      publish := { }, // skip publishing for this root project.
-      publishLocal := { }, // skip publishing locally,
+      publishTo := Some(Classpaths.sbtPluginReleases),
+//      publish := { }, // skip publishing for this root project.
+//      publishLocal := { }, // skip publishing locally,
       publishMavenStyle := false,
       description := "An sbt interface for ls.implicit.ly"
     ) ++ ScriptedPlugin.scriptedSettings ++ lsSettings ++ Seq(
