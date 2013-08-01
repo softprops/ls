@@ -14,7 +14,7 @@ case class VersionInfo(
   org: String, name: String, version: String, opts: Optionals,
   resolvers: Seq[Resolver], libraryDeps: Seq[SbtModuleID],
   scalaVersions: Seq[String], sbt: Boolean)
-  extends LiftJsonSerializing {
+  extends JsonSerializing {
 
   import ls.{ Library, ModuleID => LsModuleID, License }
   import pj.Printer

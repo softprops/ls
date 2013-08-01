@@ -1,6 +1,6 @@
 package ls
 
-import java.io.{File,FileWriter}
+import java.io.{ File, FileWriter }
 
 object LsInit {
 
@@ -55,7 +55,6 @@ object LsInit {
       |resolvers += "coda" at "http://repo.codahale.com"
       |
       |resolvers += Seq(
-      |  "coda" at "http://repo.codahale.com",
       |  Resolver.url("sbt-plugin-releases",
       |    new URL("http://scalasbt.artifactoryonline.com/scalasbt/sbt-plugin-releases/"))(
       |      Resolver.ivyStylePatterns))

@@ -1,20 +1,17 @@
 package ls
 
-trait Requesting {
-  import dispatch._
-  import org.apache.http.conn.{ HttpHostConnectException => ConnectionRefused }
+import com.ning.http.client.{ Request, AsyncHandler }
+import dispatch._, dispatch.Defaults._
+import java.net.UnknownHostException
 
-  def http[T](hand: Handler[T]): T = {
-    val h = new Http with NoLogging
-    try { h(hand) }
+trait Requesting {
+  def http[T](pair: (Request, AsyncHandler[T])): Future[T] = {
+    val h = new Http
+    try { Shared.http(pair) }
     catch {
-      case cf: ConnectionRefused => sys.error(
-        "ls is currently not available to take your call"
-      )
-      case uh:java.net.UnknownHostException => sys.error(
+      case uh: UnknownHostException => sys.error(
         "You may not know your host as well as you think. Your http client doesn't know %s" format uh.getMessage
       )
     }
-    finally { h.shutdown() }
   }
 }

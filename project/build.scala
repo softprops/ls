@@ -4,15 +4,11 @@ import Keys._
 object Build extends sbt.Build {
   import ls.Plugin._
 
-  object Resolvers {
-    val coda = "coda" at "http://repo.codahale.com"
-  }
-
   val buildSettings = Defaults.defaultSettings ++ Seq(
     scalacOptions ++= Seq(Opts.compile.deprecation, "-feature"),
     organization := "me.lessis",
-    version := "0.1.2",
-    sbtVersion in Global := "0.13.0-RC1",
+    version := "0.1.3-SNAPSHOT",
+    sbtVersion in Global := "0.13.0-RC4",
     scalaVersion in Global := "2.10.2",
     publishArtifact in Test := false,
     publishMavenStyle := true,
@@ -35,8 +31,6 @@ object Build extends sbt.Build {
       </developers>)
   )
 
-  val dispatchVersion = "0.8.8"
-
   lazy val root = Project(
     "root", file("."),
     settings = buildSettings ++ Seq(
@@ -44,52 +38,48 @@ object Build extends sbt.Build {
       publish := { }, // skip publishing for this root project.
       publishLocal := { }, // skip publishing locally,
       ls.Plugin.LsKeys.skipWrite := true // don't track root in ls
-    )) aggregate(plugin, lib, app)
-
-  lazy val lib = Project("library", file("library"),
-    settings = buildSettings ++ Seq(
-      libraryDependencies +=
-        "net.databinder" %% "dispatch-http" % dispatchVersion,
-      name := "ls"
-      )
     )
+  ) aggregate(plugin, lib, app)
+
+  lazy val lib = Project(
+    "library",
+    file("library"),
+    settings = buildSettings ++ Seq(
+    name := "ls",
+    libraryDependencies ++= Seq(
+      "net.databinder.dispatch" %% "dispatch-json4s-native" % "0.11.0",
+      "org.slf4j" % "slf4j-jdk14" % "1.6.2")
+    )
+  )
 
   lazy val plugin = Project("plugin", file("plugin"),
     settings = buildSettings ++ Seq(
       sbtPlugin := true,
       name := "ls-sbt",
       libraryDependencies ++= Seq(
-        "me.lessis" %% "pj" % "0.1.0",
-        "org.json4s" %% "json4s-native" % "3.2.2"
-        //"net.liftweb" % "lift-json_2.9.1" % "2.4"
+        "me.lessis" %% "pj" % "0.1.0"
        // "me.lessis" %% "ls" % "0.1.2"
       ),
-      resolvers ++= Seq(Resolvers.coda, Opts.resolver.sonatypeReleases),
+      resolvers ++= Seq(Opts.resolver.sonatypeReleases),
       publishTo := Some(Classpaths.sbtPluginReleases),
-//      publish := { }, // skip publishing for this root project.
-//      publishLocal := { }, // skip publishing locally,
+//    publish := { }, // skip publishing for this root project.
+ //     publishLocal := { }, // skip publishing locally,
       publishMavenStyle := false,
       description := "An sbt interface for ls.implicit.ly"
     ) ++ ScriptedPlugin.scriptedSettings ++ lsSettings ++ Seq(
       LsKeys.tags in LsKeys.lsync := Seq("ls", "plugin", "sbt"),
-      externalResolvers in LsKeys.lsync := Seq(
-        "coda" at "http://repo.codahale.com"
-      ),
       LsKeys.docsUrl in LsKeys.lsync := Some(url("http://ls.implicit.ly/#publishing"))
     )) dependsOn(lib)
 
   lazy val app = Project("app", file("app"),
-    settings = buildSettings ++ 
-      /*conscript.Harness.conscriptSettings ++ */Seq(
-         // don't publish until sbt 0.12.0 is final to avoid
-        // punishing 0.11 users
-        publishTo := Some(Opts.resolver.sonatypeStaging),
-        resolvers += Classpaths.typesafeResolver,
-        libraryDependencies <+= (sbtVersion)(
-          "org.scala-sbt" %
-          "launcher-interface" %
-          _ % "provided"),
-        name := "ls-app"
-      )
-    ) dependsOn(lib)
+    settings = buildSettings ++ Seq(
+      publishTo := Some(Opts.resolver.sonatypeStaging),
+      resolvers += Classpaths.typesafeResolver,
+      libraryDependencies <+= (sbtVersion)(
+        "org.scala-sbt" %
+        "launcher-interface" %
+        _ % "provided"),
+      name := "ls-app"
+    )
+  ) dependsOn(lib)
 }

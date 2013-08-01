@@ -1,21 +1,24 @@
 package ls
 
 import sbt._
-import Keys._
-import Project.Initialize
+import sbt.Def.Initialize
+import sbt.Keys._
+import sbt.{ ModuleID => SbtModuleID }
+
 import scala.language.postfixOps
 import scala.util.control.NonFatal
+import scala.collection.JavaConversions._
+ 
+import java.io.File
+import java.net.URL
+
+import dispatch._
+import dispatch.Defaults._
 
 object Plugin extends sbt.Plugin
-  with Requesting with LiftJsonParsing {
-  import scala.collection.JavaConversions._
-  
+  with Requesting with JsonParsing {
+
   import LsKeys.{ ls => lskey, _ }
-  import java.io.File
-  import java.net.URL
-  import dispatch._
-  import sbt.{ ModuleID => SbtModuleID }
-  import ls.{ LibraryVersions, Library }
 
   object LsKeys {
     // general
@@ -52,6 +55,7 @@ object Plugin extends sbt.Plugin
   }
 
   val DefaultLsHost = "http://ls.implicit.ly"
+  val DefaultBranch = "master"
 
   private def catTask: Def.Initialize[Task[Unit]] =
     (streams, versionFile, versionInfo) map {
@@ -69,9 +73,8 @@ object Plugin extends sbt.Plugin
   private def lintTask: Def.Initialize[Task[Boolean]] =
     (streams, versionFile, versionInfo) map {
       (out, vfile, vinfo) => try {
-        if(vfile.exists) {
+        if (vfile.exists) {
           val json = IO.read(vfile)
-          // todo: parse with json4s
           parseJson[Library](json)
         }
         out.log.debug("Valid version info")
@@ -79,9 +82,9 @@ object Plugin extends sbt.Plugin
         true
       } catch {
         case NonFatal(e) =>
-          out.log.error("Invalid version-info %s. %s" format(
-            e.getMessage, if(vfile.exists) "\n" + IO.read(vfile) else ""
-          ))
+          out.log.error("Invalid version-info %s. %s"
+                        .format(e.getMessage,
+                                if (vfile.exists) "\n" + IO.read(vfile) else ""))
           false
       }
     }
@@ -93,22 +96,20 @@ object Plugin extends sbt.Plugin
         (maybeUser, maybeRepo) match {
           case (Some(user), Some(repo)) =>
             if (lint) {
-              if (snapshot(vers)) {
-                out.log.warn(SnapshotWarning)
-              } else {
+              if (snapshot(vers)) out.log.warn(SnapshotWarning)
+              else {
                 out.log.info("lsyncing project %s/%s@%s..." format(user, repo, vers))
-                try {
-                  // todo: should this by an async server request?
-                  http(Client(host).lsync(user, repo, branch.getOrElse("master"), vers) as_str)
-                  out.log.info("Project was synchronized")
-                } catch {
-                  case NonFatal(e) =>
-                    out.log.warn("Error synchronizing project libraries %s" format e.getMessage)
-                }
+                http(Client(host).lsync(user, repo, branch.getOrElse(DefaultBranch), vers) OK as.String)
+                  .either.map(_.fold({
+                    case NonFatal(e) =>
+                      out.log.warn("Error synchronizing project libraries %s" format e.getMessage)
+                  }, { _ =>
+                    out.log.info("Project was synchronized")
+                  }))
+                 .apply()
               }
-            } else sys.error("Your version descriptor was invalid. %s" format(
-              IO.read(vfile)
-            ))
+            } else sys.error("Your version descriptor was invalid. %s"
+                             .format(IO.read(vfile)))
           case _ => sys.error("Could not resolve a Github git remote")
         }
     }
@@ -125,20 +126,18 @@ object Plugin extends sbt.Plugin
           IO.write(f, info.json)
           out.log.info("Wrote %s" format(f))
         }
-        if (skip) {
-          out.log.info("Skipping %s".format(f))
-        } else if(!f.exists) {
+        if (skip) out.log.info("Skipping %s".format(f))
+        else if (!f.exists) {
           f.getParentFile().mkdirs()
           write()
         } else Prompt.ask(
-          "Overwrite existing version info for %s@%s? [Y/n] " format(
-            info.name, info.version
-          )) { r =>
+          "Overwrite existing version info for %s@%s? [Y/n] "
+            .format(info.name, info.version)) { r =>
             val a = r.trim.toLowerCase
-            if(Prompt.Yes.contains(a) || a.trim.isEmpty) {
+            if (Prompt.Yes.contains(a) || a.trim.isEmpty) {
               write()
             }
-            else if(Prompt.No contains a) out.log.info("Skipped.")
+            else if (Prompt.No contains a) out.log.info("Skipped.")
             else sys.error("Unexpected answer %s" format a)
           }
     }
@@ -185,19 +184,17 @@ object Plugin extends sbt.Plugin
   private def depend(persistently: Boolean)(state: State, dep: String) =
     LibraryParser(dep) match {
       case LibraryParser.Pass(user, repo, lib, version, config) =>
-        try {
-          val resp = http(Client(DefaultLsHost).lib(lib, version)(user)(repo) as_str)
-          // todo: parse with json4s
-          val ls = parseJson[List[LibraryVersions]](resp)
-          Depends(state, ls, version, config, persistently)
-        } catch {
-          case dispatch.StatusCode(404, msg) => sys.error(
-            "Library not found %s" format msg
-          )
-          case Conflicts.Conflict(_, _, _, msg) => sys.error(
-            msg
-          )
-        }
+        http(Client(DefaultLsHost).lib(lib, version)(user)(repo) OK as.String)
+          .either.map(_.fold({
+            case dispatch.StatusCode(404) =>
+              sys.error("Library not found")
+            case Conflicts.Conflict(_, _, _, msg) =>
+              sys.error(msg)
+          }, { str =>
+            val ls = parseJson[List[LibraryVersions]](str)
+            Depends(state, ls, version, config, persistently)
+          }))
+         .apply()
       case LibraryParser.Fail => sys.error(
         "Unexpected library format %s. Try something like %s" format(
           dep, "[user/repository/]library[@version][:config1->config2]"
@@ -237,24 +234,24 @@ object Plugin extends sbt.Plugin
                 case Array(name) => cli.lib(name)_
                 case Array(name, version) => cli.lib(name, version = Some(version))_
               }
-              try {
                 log.info("Fetching library docs for %s" format name)
                 def version(name: String) = name.split("@") match {
                   case Array(_) => None
                   case Array(_, version) => Some(version)
                 }
-                val resp = http(named(name)(None)(None) as_str)
-                docsFor(
-                  // todo: parse with json4s
-                  parseJson[List[LibraryVersions]](resp),
-                  version(name), log)
-              } catch {
-                case StatusCode(404, msg) =>
-                  log.info("`%s` library not found" format name)
-              }
-            case _ => sys.error(
-              "Please provide a name and optionally a version of the library you want docs for in the form ls-docs <name> or ls-docs <name>@<version>"
-            )
+                http(named(name)(None)(None) OK as.String)
+                  .either.map(_.fold({
+                    case StatusCode(404) =>
+                      log.info("`%s` library not found" format name)
+                    case _ => sys.error(
+                      "Please provide a name and optionally a version of the library you want docs for in the form ls-docs <name> or ls-docs <name>@<version>")
+                  }, { str =>
+                    docsFor(
+                      parseJson[List[LibraryVersions]](str),
+                      version(name), log)  
+                  }))
+                  .apply()
+
           }
         }
     },
@@ -272,33 +269,32 @@ object Plugin extends sbt.Plugin
                 case Array(name) => cli.lib(name)_
                 case Array(name, version) => cli.lib(name, version = Some(version))_
               }
-              try {
-                log.info("Fetching library info for %s" format name)
-                val resp = http(named(name)(None)(None) as_str)
-                libraries(
-                  // todo: parse json4s
-                  parseJson[List[LibraryVersions]](resp),
-                  log, color, -1,
-                  name.split("@"):_*)
-              } catch {
-                case StatusCode(404, msg) =>
-                  out.log.info("`%s` library not found" format name)
-              }
+              log.info("Fetching library info for %s" format name)
+              http(named(name)(None)(None) OK as.String)
+                .either.map(_.fold({
+                  case StatusCode(404) =>
+                    out.log.info("`%s` library not found" format name)
+                },{ str =>
+                  libraries(
+                    parseJson[List[LibraryVersions]](str),
+                    log, color, -1,
+                    name.split("@"):_*)  
+                }))
+                .apply()
             case kwords =>
-              val cli = Client(host)
-              try {
-                log.info("Fetching library info matching %s" format kwords.mkString(", "))
-                val resp = http(cli.search(kwords.toSeq) as_str)
-                libraries(
-                  // todo: parse json4s
-                  parseJson[List[LibraryVersions]](resp),
-                  log, color, 3,
-                  args:_*
-                )
-              } catch {
-                case StatusCode(404, msg) =>
-                  log.info("Library not found for keywords %s" format kwords.mkString(", "))
-              }
+              log.info("Fetching library info matching %s" format kwords.mkString(", "))
+              http(Client(host).search(kwords.toSeq) OK as.String)
+                .either.map(_.fold({
+                  case StatusCode(404) =>
+                    log.info("Library not found for keywords %s" format kwords.mkString(", "))
+                }, { str =>
+                  libraries(
+                    parseJson[List[LibraryVersions]](str),
+                    log, color, 3,
+                    args:_*
+                  )
+                }))
+                .apply()
           }
       }
     },
@@ -364,7 +360,14 @@ object Plugin extends sbt.Plugin
     (aggregate in lsync) := false
   )
 
-  def lsSettings: Seq[Setting[_]] = lsSearchSettings ++ lsPublishSettings
+  def lsCommonSettings: Seq[Setting[_]] = Seq(
+    onUnload in Global ~= { onUnload => state =>
+      ls.Shared.http.shutdown()
+      onUnload(state)
+    }
+  )
+
+  def lsSettings: Seq[Setting[_]] = lsCommonSettings ++ lsSearchSettings ++ lsPublishSettings
 
   /** Preforms a `best-attempt` at retrieving a uri for library documentation before
    *  attempting to launch it */
@@ -378,9 +381,9 @@ object Plugin extends sbt.Plugin
         }) match {
           case Some(vers) =>
             (vers.docs match {
-              case s if(!s.isEmpty) => Some(s)
+              case s if (!s.isEmpty) => Some(s)
               case _ => lib.site match {
-                case s if(!s.isEmpty) => Some(s)
+                case s if (!s.isEmpty) => Some(s)
                 case _ => ((lib.ghuser, lib.ghrepo)) match {
                   case (Some(u), Some(r)) => Some("https://github.com/%s/%s/" format(
                     u, r
@@ -405,7 +408,7 @@ object Plugin extends sbt.Plugin
   /** Attempts to launch the provided uri */
   private def launch(uri: String) =
     uri match {
-      case u if(!u.isEmpty) =>
+      case u if (!u.isEmpty) =>
         try {
           import java.net.URI
           val dsk = Class.forName("java.awt.Desktop")
@@ -429,7 +432,7 @@ object Plugin extends sbt.Plugin
     val lterms: Seq[String] = terms.toList
     def hl(txt: String, terms: Seq[String],
            cw: Wheel[String] = Wheels.default): String =
-      if(colors) {
+      if (colors) {
         terms match {
           case head :: Nil =>
             txt.replaceAll("""(?i)(\?\S+)?(""" + head + """)(\?\S+)?""", cw.get + "$0\033[0m").trim
@@ -450,7 +453,7 @@ object Plugin extends sbt.Plugin
         ), lterms, Wheels.colorWheel(clrs))
       )
     }
-    if(libs.isEmpty) log.info("(no projects matching the terms %s)" format terms.mkString(" "))
+    if (libs.isEmpty) log.info("(no projects matching the terms %s)" format terms.mkString(" "))
   }
 
   /* https://github.com/harrah/xsbt/wiki/Configurations */
