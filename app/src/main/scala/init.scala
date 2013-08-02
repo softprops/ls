@@ -1,6 +1,7 @@
 package ls
 
 import java.io.{ File, FileWriter }
+import dispatch._, dispatch.Defaults._
 
 object LsInit {
 
@@ -16,10 +17,15 @@ object LsInit {
     } else {
       Left("Directory not found: " + base.getCanonicalPath)
     }
-    result.fold(
-      { err => println(err); 1 },
-      { msg => println(msg); 0 }
-    )
+    result.fold({ err => println(err); 1 }, { resp =>
+        resp.map(_.fold({ err =>
+          println("unexpected http error %s" format err)
+          0
+        }, { version =>
+          setup(base, version)
+          1
+        })).apply()
+     })
   }
 
   def setup(base: File, version: String) = {
