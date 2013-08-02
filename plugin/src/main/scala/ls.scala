@@ -223,79 +223,77 @@ object Plugin extends sbt.Plugin
         |  ls web http
         """.stripMargin)
     },
-    lsDocs <<= inputTask { (argsTask: TaskKey[Seq[String]]) =>
-      (argsTask, streams, host in lskey, colors in lskey, state) map {
-        case (args, out, host, color, state) =>
-          val log = out.log
-          args match {
-            case Seq(name) =>
-              val cli = Client(host)
-              def named(name: String) = name.split("@") match {
-                case Array(name) => cli.lib(name)_
-                case Array(name, version) => cli.lib(name, version = Some(version))_
-              }
-                log.info("Fetching library docs for %s" format name)
-                def version(name: String) = name.split("@") match {
-                  case Array(_) => None
-                  case Array(_, version) => Some(version)
-                }
-                http(named(name)(None)(None) OK as.String)
-                  .either.map(_.fold({
-                    case StatusCode(404) =>
-                      log.info("`%s` library not found" format name)
-                    case _ => sys.error(
-                      "Please provide a name and optionally a version of the library you want docs for in the form ls-docs <name> or ls-docs <name>@<version>")
-                  }, { str =>
-                    docsFor(
-                      parseJson[List[LibraryVersions]](str),
-                      version(name), log)  
-                  }))
-                  .apply()
-
+    lsDocs := {
+      val args = Def.spaceDelimited("<args>").parsed
+      val color = (colors in lskey).value
+      val log = streams.value.log
+      args match {
+        case Seq(name) =>
+          val cli = Client((host in lskey).value)
+          def named(name: String) = name.split("@") match {
+            case Array(name) => cli.lib(name)_
+            case Array(name, version) => cli.lib(name, version = Some(version))_
           }
-        }
+          log.info("Fetching library docs for %s" format name)
+          def version(name: String) = name.split("@") match {
+            case Array(_) => None
+            case Array(_, version) => Some(version)
+          }
+          http(named(name)(None)(None) OK as.String)
+            .either.map(_.fold({
+              case StatusCode(404) =>
+                log.info("`%s` library not found" format name)
+              case _ => sys.error(
+                "Please provide a name and optionally a version of the library you want docs for in the form ls-docs <name> or ls-docs <name>@<version>")
+            }, { str =>
+              docsFor(
+                parseJson[List[LibraryVersions]](str),
+                version(name), log)
+              }))
+            .apply()
+      }
     },
-    lskey <<= inputTask { (argsTask: TaskKey[Seq[String]]) =>
-      (argsTask, streams, host in lskey, colors in lskey, state) map {
-        case (args, out, host, color, state) =>
-          val log = out.log
-          args match {
-            case Seq() => sys.error(
-              "Please provide at least one or more search keywords or -n <name of library>"
-            )
-            case Seq("-n", name) =>
-              val cli = Client(host)
-              def named(name: String) = name.split("@") match {
-                case Array(name) => cli.lib(name)_
-                case Array(name, version) => cli.lib(name, version = Some(version))_
-              }
-              log.info("Fetching library info for %s" format name)
-              http(named(name)(None)(None) OK as.String)
-                .either.map(_.fold({
-                  case StatusCode(404) =>
-                    out.log.info("`%s` library not found" format name)
-                },{ str =>
-                  libraries(
-                    parseJson[List[LibraryVersions]](str),
-                    log, color, -1,
-                    name.split("@"):_*)  
-                }))
-                .apply()
-            case kwords =>
-              log.info("Fetching library info matching %s" format kwords.mkString(", "))
-              http(Client(host).search(kwords.toSeq) OK as.String)
-                .either.map(_.fold({
-                  case StatusCode(404) =>
-                    log.info("Library not found for keywords %s" format kwords.mkString(", "))
-                }, { str =>
-                  libraries(
-                    parseJson[List[LibraryVersions]](str),
-                    log, color, 3,
-                    args:_*
-                  )
-                }))
-                .apply()
+    lskey := {//inputTask { (argsTask: TaskKey[Seq[String]]) =>
+      val args = Def.spaceDelimited("<args>").parsed
+      val log = streams.value.log
+      val color = (colors in lskey).value
+      val currentState = state.value
+      args match {
+        case Seq() => sys.error(
+          "Please provide at least one or more search keywords or -n <name of library>"
+        )
+        case Seq("-n", name) =>
+          val cli = Client((host in lskey).value)
+          def named(name: String) = name.split("@") match {
+            case Array(name) => cli.lib(name)_
+            case Array(name, version) => cli.lib(name, version = Some(version))_
           }
+          log.info("Fetching library info for %s" format name)
+          http(named(name)(None)(None) OK as.String)
+            .either.map(_.fold({
+              case StatusCode(404) =>
+                log.info("`%s` library not found" format name)
+            },{ str =>
+              libraries(
+                parseJson[List[LibraryVersions]](str),
+                log, color, -1,
+                name.split("@"):_*)
+            }))
+            .apply()
+        case kwords =>
+          log.info("Fetching library info matching %s" format kwords.mkString(", "))
+          http(Client((host in lskey).value).search(kwords.toSeq) OK as.String)
+            .either.map(_.fold({
+              case StatusCode(404) =>
+                log.info("Library not found for keywords %s" format kwords.mkString(", "))
+            }, { str =>
+              libraries(
+                parseJson[List[LibraryVersions]](str),
+                log, color, 3,
+                args:_*
+              )
+            }))
+            .apply()
       }
     },
     (aggregate in lskey) := false,
@@ -360,14 +358,7 @@ object Plugin extends sbt.Plugin
     (aggregate in lsync) := false
   )
 
-  def lsCommonSettings: Seq[Setting[_]] = Seq(
-    onUnload in Global ~= { onUnload => state =>
-      ls.Shared.http.shutdown()
-      onUnload(state)
-    }
-  )
-
-  def lsSettings: Seq[Setting[_]] = lsCommonSettings ++ lsSearchSettings ++ lsPublishSettings
+  def lsSettings: Seq[Setting[_]] = lsSearchSettings ++ lsPublishSettings
 
   /** Preforms a `best-attempt` at retrieving a uri for library documentation before
    *  attempting to launch it */
@@ -420,7 +411,6 @@ object Plugin extends sbt.Plugin
       case empty => None
     }
 
-
   private def libraries(libs: Seq[LibraryVersions], log: sbt.Logger, colors: Boolean, maxVersions: Int, terms: String*) = {
     def versions(l: LibraryVersions) =
       if (maxVersions == -1 || l.versions.size < maxVersions) l.versions.map(_.version)
@@ -432,16 +422,15 @@ object Plugin extends sbt.Plugin
     val lterms: Seq[String] = terms.toList
     def hl(txt: String, terms: Seq[String],
            cw: Wheel[String] = Wheels.default): String =
-      if (colors) {
-        terms match {
-          case head :: Nil =>
-            txt.replaceAll("""(?i)(\?\S+)?(""" + head + """)(\?\S+)?""", cw.get + "$0\033[0m").trim
-          case head :: tail =>
-            hl(txt.replaceAll("""(?i)(\?\S+)?(""" + head + """)(\\S+)?""", cw.get + "$0\033[0m").trim,
-               tail, cw.turn)
-          case Nil => txt
-        }
-      } else txt
+      if (colors) terms match {
+        case head :: Nil =>
+          txt.replaceAll("""(?i)(\?\S+)?(""" + head + """)(\?\S+)?""", cw.get + "$0\033[0m").trim
+        case head :: tail =>
+          hl(txt.replaceAll("""(?i)(\?\S+)?(""" + head + """)(\\S+)?""", cw.get + "$0\033[0m").trim,
+             tail, cw.turn)
+        case Nil => txt
+      }
+      else txt
 
     val clrs = Wheels.shuffle
     tups map { case (n, v, d) =>
@@ -467,5 +456,4 @@ object Plugin extends sbt.Plugin
     m.organization.trim.toLowerCase.equals(
       "org.scala-lang"
     )
-
 }
