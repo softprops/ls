@@ -7,7 +7,7 @@ object Build extends sbt.Build {
   val buildSettings = Defaults.defaultSettings ++ Seq(
     scalacOptions ++= Seq(Opts.compile.deprecation, "-feature"),
     organization := "me.lessis",
-    version := "0.1.3-SNAPSHOT",
+    version := "0.1.3",
     sbtVersion in Global := "0.13.0-RC4",
     scalaVersion in Global := "2.10.2",
     publishArtifact in Test := false,
@@ -58,12 +58,9 @@ object Build extends sbt.Build {
       name := "ls-sbt",
       libraryDependencies ++= Seq(
         "me.lessis" %% "pj" % "0.1.0"
-       // "me.lessis" %% "ls" % "0.1.2"
       ),
       resolvers ++= Seq(Opts.resolver.sonatypeReleases),
       publishTo := Some(Classpaths.sbtPluginReleases),
-//    publish := { }, // skip publishing for this root project.
- //     publishLocal := { }, // skip publishing locally,
       publishMavenStyle := false,
       description := "An sbt interface for ls.implicit.ly"
     ) ++ ScriptedPlugin.scriptedSettings ++ lsSettings ++ Seq(
@@ -73,7 +70,6 @@ object Build extends sbt.Build {
 
   lazy val app = Project("app", file("app"),
     settings = buildSettings ++ Seq(
-      publishTo := Some(Opts.resolver.sonatypeStaging),
       resolvers += Classpaths.typesafeResolver,
       libraryDependencies <+= (sbtVersion)(
         "org.scala-sbt" %
