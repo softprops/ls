@@ -14,7 +14,7 @@ For a quick overview, [see this screencast](http://www.screenr.com/EIus)
 
 If you are using sbt 0.12.* or 0.13.* add the following to your `project/plugins.sbt` file
 
-    addSbtPlugin("me.lessis" % "ls-sbt" % "0.1.2")
+    addSbtPlugin("me.lessis" % "ls-sbt" % "0.1.3")
 
     resolvers ++= Seq(
       Classpaths.sbtPluginReleases,
