@@ -10,23 +10,28 @@ object LsInit {
     System.exit(exit)
   }
 
-  def run(args: Array[String]): Int = {
-    val base = new File(args.headOption.getOrElse("."))
-    val result = if (base.isDirectory) {
-      DefaultClient { _.Handler.latest("ls-sbt") }
-    } else {
-      Left("Directory not found: " + base.getCanonicalPath)
+  def run(args: Array[String]): Int =
+    args match {
+      case Array("--version") =>
+        println("0.1.3")
+        0
+      case _ =>
+        val base = new File(args.headOption.getOrElse("."))
+        val result = if (base.isDirectory) {
+          DefaultClient { _.Handler.latest("ls-sbt") }
+        } else {
+          Left("Directory not found: " + base.getCanonicalPath)
+        }
+        result.fold({ err => println(err); 1 }, { resp =>
+          resp.map(_.fold({ err =>
+            println("unexpected http error %s" format err)
+            0
+          }, { version =>
+            setup(base, version)
+            1
+          })).apply()
+       })
     }
-    result.fold({ err => println(err); 1 }, { resp =>
-        resp.map(_.fold({ err =>
-          println("unexpected http error %s" format err)
-          0
-        }, { version =>
-          setup(base, version)
-          1
-        })).apply()
-     })
-  }
 
   def setup(base: File, version: String) = {
     val build = new File(base, "build.sbt")
@@ -57,13 +62,6 @@ object LsInit {
     }
     write(plugin) { fw =>
       fw.write("""
-      |
-      |resolvers += "coda" at "http://repo.codahale.com"
-      |
-      |resolvers += Seq(
-      |  Resolver.url("sbt-plugin-releases",
-      |    new URL("http://scalasbt.artifactoryonline.com/scalasbt/sbt-plugin-releases/"))(
-      |      Resolver.ivyStylePatterns))
       |
       |addSbtPlugin("me.lessis" % "ls-sbt" % "%VERSION%")
       |""".replace("%VERSION%", version).stripMargin)
