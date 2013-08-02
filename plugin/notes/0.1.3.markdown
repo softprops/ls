@@ -1,0 +1,6 @@
+## minor fixes
+
+This release targets sbt 0.13.0 ( currently in rc4 stage )
+
+- migrated from dispatch classic to dispatch 0.11.0
+- unbroke `lsinit` conscript app
