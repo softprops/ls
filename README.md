@@ -12,7 +12,7 @@ For a quick overview, [see this screencast](http://www.screenr.com/EIus)
     
 ### Via hands
 
-If you are using sbt 0.12.* or 0.13.* add the following to your `project/plugins.sbt` file
+If you are using sbt 0.13.* add the following to your `project/plugins.sbt` file
 
     addSbtPlugin("me.lessis" % "ls-sbt" % "0.1.3")
 
@@ -20,6 +20,8 @@ If you are using sbt 0.12.* or 0.13.* add the following to your `project/plugins
       Classpaths.sbtPluginReleases,
       Opts.resolver.sonatypeReleases
     )
+
+If you are using sbt 0.12.* use replace `0.1.3` with `0.1.2` instead.
 
 Mix it in to your project definition
 
